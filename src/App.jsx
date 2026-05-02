@@ -120,6 +120,28 @@ const saveMonthData = (y, m, data) => {
   try { localStorage.setItem(monthKey(y, m), JSON.stringify(data)); } catch {}
 };
 
+// ─────────────────────────  CSV EXPORT  ─────────────────────────
+const csvCell = (v) => {
+  if (v == null || v === "") return "";
+  const s = String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+const toCSV = (rows) => rows.map(r => r.map(csvCell).join(",")).join("\n");
+
+const downloadCSV = (filename, csv) => {
+  // BOM so Excel reads UTF-8 correctly (€, ₽, ¥ etc. show properly)
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 // ─────────────────────────  APP  ─────────────────────────
 export default function App() {
   const now = new Date();
@@ -235,6 +257,85 @@ export default function App() {
     const arr = [...INCS];
     [arr[i], arr[j]] = [arr[j], arr[i]];
     updateConfig({ ...config, incomeSources: arr });
+  };
+
+  // ── CSV exports ──
+  const exportCurrentMonth = () => {
+    const headers = ["Date", "Day", ...CATS.map(c => c.label), "Total"];
+    const rows = [headers];
+
+    for (let day = 1; day <= nd; day++) {
+      const dt = new Date(year, month, day);
+      const dow = dt.toLocaleDateString("en", { weekday: "short" });
+      const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const cats = CATS.map(c => md.days[day]?.[c.id] ?? "");
+      const total = dayTotals[day] || "";
+      rows.push([date, dow, ...cats, total]);
+    }
+
+    rows.push([]);
+    rows.push(["SPENT", "", ...CATS.map(c => catTotals[c.id] || ""), totalSpent || ""]);
+    rows.push(["BUDGET", "", ...CATS.map(c => md.budgets[c.id] || ""), totalBudget || ""]);
+    rows.push(["REMAINING", "", ...CATS.map(c => {
+      const b = md.budgets[c.id] || 0;
+      return b > 0 ? b - (catTotals[c.id] || 0) : "";
+    }), totalBudget > 0 ? totalBudget - totalSpent : ""]);
+
+    rows.push([]);
+    rows.push(["INCOME"]);
+    rows.push(["Source", "Amount"]);
+    INCS.forEach(s => rows.push([s.label, md.income[s.id] || ""]));
+    rows.push(["TOTAL INCOME", totalIncome || ""]);
+
+    rows.push([]);
+    rows.push(["Currency", CUR.code]);
+
+    const filename = `expense-tracker-${year}-${String(month + 1).padStart(2, "0")}.csv`;
+    downloadCSV(filename, toCSV(rows));
+  };
+
+  const exportAllData = () => {
+    const headers = ["Type", "Year", "Month", "Day", "ItemId", "Label", "Amount", "Currency"];
+    const rows = [headers];
+
+    const catById = Object.fromEntries(CATS.map(c => [c.id, c.label]));
+    const incById = Object.fromEntries(INCS.map(s => [s.id, s.label]));
+
+    const months = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const m = key?.match(/^xpns_(\d{4})_(\d+)$/);
+      if (m) months.push({ key, year: parseInt(m[1]), month: parseInt(m[2]) });
+    }
+    months.sort((a, b) => a.year - b.year || a.month - b.month);
+
+    months.forEach(({ key, year: y, month: m }) => {
+      let data;
+      try { data = JSON.parse(localStorage.getItem(key)); } catch { return; }
+      if (!data) return;
+
+      const sortedDays = Object.entries(data.days || {}).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+      sortedDays.forEach(([day, entries]) => {
+        Object.entries(entries).forEach(([catId, amount]) => {
+          rows.push(["expense", y, m + 1, parseInt(day), catId, catById[catId] || "(deleted)", amount, CUR.code]);
+        });
+      });
+
+      Object.entries(data.budgets || {}).forEach(([catId, amount]) => {
+        rows.push(["budget", y, m + 1, "", catId, catById[catId] || "(deleted)", amount, CUR.code]);
+      });
+
+      Object.entries(data.income || {}).forEach(([incId, amount]) => {
+        rows.push(["income", y, m + 1, "", incId, incById[incId] || "(deleted)", amount, CUR.code]);
+      });
+    });
+
+    if (rows.length === 1) {
+      window.alert("No data to export yet.");
+      return;
+    }
+
+    downloadCSV("expense-tracker-all.csv", toCSV(rows));
   };
 
   // ── Shared style snippets ──
@@ -635,8 +736,25 @@ export default function App() {
             ))}
           </div>
 
-          <div style={{ marginTop: 20, fontSize: 11, color: T.MUTED, lineHeight: 1.6 }}>
-            Data is stored locally in your browser (localStorage). Clearing site data will erase your records — consider a manual backup if this matters.
+          <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, marginTop: 20 }}>
+            <div style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, marginBottom: 14 }}>DATA & BACKUP</div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+              <button
+                onClick={exportCurrentMonth}
+                style={{ ...smallBtn, padding: "8px 14px", height: "auto", color: T.TEXT, borderColor: T.BORDER }}
+              >
+                ⬇ Export {SHORT[month]} {year} (CSV)
+              </button>
+              <button
+                onClick={exportAllData}
+                style={{ ...smallBtn, padding: "8px 14px", height: "auto", color: T.GREEN, borderColor: T.GREEN }}
+              >
+                ⬇ Export all data (CSV)
+              </button>
+            </div>
+            <div style={{ fontSize: 11, color: T.MUTED, lineHeight: 1.6 }}>
+              Data is stored locally in your browser (localStorage). Clearing site data will erase your records — download a CSV backup periodically. CSVs open in Excel, Google Sheets, or any spreadsheet app.
+            </div>
           </div>
         </div>
       )}
