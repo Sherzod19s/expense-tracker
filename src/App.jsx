@@ -133,6 +133,15 @@ const STRINGS = {
     prevYear: "Previous year",
     nextYear: "Next year",
     toggleTheme: "Toggle theme",
+    introTitle: "👋 Welcome",
+    introBody: "Set your currency and customize categories in Settings, then tap any cell below to log your first expense.",
+    introCta: "Got it",
+    introOpenSettings: "Open Settings",
+    pickDay: "Pick a day",
+    addExpense: "+ Add expense",
+    cancel: "Cancel",
+    save: "Save",
+    dayTotal: "Day total",
     // Default category labels (only used if user hasn't customized)
     defaultCats: {
       food: "Food", house: "House Exp.", utilities: "Utilities", transport: "Transport",
@@ -204,6 +213,15 @@ const STRINGS = {
     prevYear: "Предыдущий год",
     nextYear: "Следующий год",
     toggleTheme: "Сменить тему",
+    introTitle: "👋 Добро пожаловать",
+    introBody: "Выберите валюту и настройте категории в Настройках, затем нажмите на любую ячейку ниже, чтобы записать первый расход.",
+    introCta: "Понятно",
+    introOpenSettings: "Открыть настройки",
+    pickDay: "Выберите день",
+    addExpense: "+ Добавить расход",
+    cancel: "Отмена",
+    save: "Сохранить",
+    dayTotal: "Итого за день",
     defaultCats: {
       food: "Еда", house: "Дом", utilities: "Коммунал.", transport: "Транспорт",
       health: "Здоровье", hygiene: "Гигиена", mobile: "Связь", rent: "Аренда",
@@ -234,6 +252,7 @@ const defaultConfig = (lang = "en") => ({
   currency: CURRENCIES[0],
   categories: DEFAULT_CATS.map(c => ({ ...c, label: STRINGS[lang].defaultCats[c.id] || c.label })),
   incomeSources: DEFAULT_INCOME.map(s => ({ ...s, label: STRINGS[lang].defaultIncome[s.id] || s.label })),
+  hasSeenIntro: false,
 });
 
 const detectLang = () => {
@@ -254,6 +273,7 @@ const loadConfig = () => {
         currency: p.currency || CURRENCIES[0],
         categories: Array.isArray(p.categories) ? p.categories : DEFAULT_CATS,
         incomeSources: Array.isArray(p.incomeSources) ? p.incomeSources : DEFAULT_INCOME,
+        hasSeenIntro: !!p.hasSeenIntro,
       };
     }
   } catch {}
@@ -306,7 +326,15 @@ export default function App() {
   const [md, setMd] = useState(() => loadMonth(now.getFullYear(), now.getMonth()));
   const [editCell, setEditCell] = useState(null);
   const [editVal, setEditVal] = useState("");
+  const [mobileDay, setMobileDay] = useState(now.getDate());
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
 
   const T = THEMES[config.theme];
   const t = STRINGS[config.lang] || STRINGS.en;
@@ -573,10 +601,36 @@ export default function App() {
 
       {/* ══════ DAILY LOG ══════ */}
       {view === "log" && (
-        <div style={{ overflowX: "auto" }}>
-          {CATS.length === 0 ? (
-            <EmptyState T={T} text={t.noCategories} />
+        <>
+          {!config.hasSeenIntro && CATS.length > 0 && (
+            <div style={{ margin: 16, padding: 16, background: T.SURF, border: `1px solid ${T.GREEN}`, borderRadius: 8, position: "relative" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.GREEN, marginBottom: 6 }}>{t.introTitle}</div>
+              <div style={{ fontSize: 13, color: T.TEXT, lineHeight: 1.5, marginBottom: 12 }}>{t.introBody}</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  onClick={() => { setView("settings"); updateConfig({ ...config, hasSeenIntro: true }); }}
+                  style={{ ...smallBtn, padding: "8px 14px", height: "auto", color: T.GREEN, borderColor: T.GREEN }}
+                >{t.introOpenSettings}</button>
+                <button
+                  onClick={() => updateConfig({ ...config, hasSeenIntro: true })}
+                  style={{ ...smallBtn, padding: "8px 14px", height: "auto" }}
+                >{t.introCta}</button>
+              </div>
+            </div>
+          )}
+
+          {isMobile ? (
+            <MobileDailyLog
+              T={T} t={t} CATS={CATS} md={md} year={year} month={month} nd={nd}
+              mobileDay={mobileDay} setMobileDay={setMobileDay}
+              dayTotals={dayTotals} fmt={fmt} fmtT={fmtT} fmtC={fmtC}
+              setDay={setDay} CUR={CUR}
+            />
           ) : (
+            <div style={{ overflowX: "auto" }}>
+              {CATS.length === 0 ? (
+                <EmptyState T={T} text={t.noCategories} />
+              ) : (
           <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 1300, fontSize: 13 }}>
             <thead>
               <tr style={{ background: T.BG, position: "sticky", top: 0, zIndex: 10 }}>
@@ -670,14 +724,16 @@ export default function App() {
               </tr>
             </tfoot>
           </table>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
 
       {/* ══════ SUMMARY ══════ */}
       {view === "summary" && (
-        <div style={{ padding: 20, maxWidth: 900 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
+        <div style={{ padding: isMobile ? 12 : 20, maxWidth: 900 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
             {[
               { label: t.totalIncome, value: fmtC(totalIncome), color: totalIncome > 0 ? T.GREEN : T.MUTED },
               { label: t.totalSpent,  value: fmtC(totalSpent),  color: totalSpent  > 0 ? T.RED   : T.MUTED },
@@ -747,8 +803,8 @@ export default function App() {
 
       {/* ══════ BUDGET & INCOME (per-month numbers) ══════ */}
       {view === "budget" && (
-        <div style={{ padding: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 20, maxWidth: 900 }}>
+        <div style={{ padding: isMobile ? 12 : 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1fr) minmax(0,1fr)", gap: 16, maxWidth: 900 }}>
             {/* Income */}
             <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20 }}>
               <div style={{ fontSize: 11, color: T.GREEN, fontWeight: 700, letterSpacing: 1, marginBottom: 18 }}>
@@ -802,7 +858,7 @@ export default function App() {
 
       {/* ══════ SETTINGS (structural / global) ══════ */}
       {view === "settings" && (
-        <div style={{ padding: 20, maxWidth: 900 }}>
+        <div style={{ padding: isMobile ? 12 : 20, maxWidth: 900 }}>
 
           {/* Preferences */}
           <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, marginBottom: 20 }}>
@@ -931,5 +987,94 @@ export default function App() {
 function EmptyState({ T, text }) {
   return (
     <div style={{ padding: 40, textAlign: "center", color: T.MUTED, fontSize: 13 }}>{text}</div>
+  );
+}
+
+function MobileDailyLog({ T, t, CATS, md, year, month, nd, mobileDay, setMobileDay, dayTotals, fmt, fmtT, fmtC, setDay, CUR }) {
+  if (CATS.length === 0) {
+    return <EmptyState T={T} text={t.noCategories} />;
+  }
+  const dt = new Date(year, month, mobileDay);
+  const dow = dt.toLocaleDateString(t.locale, { weekday: "long" });
+  const daytotal = dayTotals[mobileDay] || 0;
+
+  return (
+    <div style={{ padding: 12 }}>
+      {/* Day picker scroller */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 1, marginBottom: 8, fontWeight: 700 }}>{t.pickDay.toUpperCase()}</div>
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, scrollSnapType: "x mandatory" }}>
+          {Array.from({ length: nd }, (_, i) => i + 1).map(d => {
+            const ddt = new Date(year, month, d);
+            const isWk = ddt.getDay() === 0 || ddt.getDay() === 6;
+            const sel = d === mobileDay;
+            const hasData = (dayTotals[d] || 0) > 0;
+            return (
+              <button
+                key={d}
+                onClick={() => setMobileDay(d)}
+                style={{
+                  minWidth: 48, height: 56, padding: 4,
+                  background: sel ? T.GREEN : T.SURF,
+                  color: sel ? "#000" : isWk ? T.MUTED : T.TEXT,
+                  border: `1px solid ${sel ? T.GREEN : T.BORDER2}`,
+                  borderRadius: 8, cursor: "pointer", fontFamily: "inherit",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  scrollSnapAlign: "start", flexShrink: 0, outline: "none", position: "relative",
+                }}
+              >
+                <span style={{ fontSize: 10, opacity: 0.8 }}>{ddt.toLocaleDateString(t.locale, { weekday: "short" }).slice(0, 2)}</span>
+                <span style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>{d}</span>
+                {hasData && !sel && <span style={{ position: "absolute", bottom: 4, width: 4, height: 4, borderRadius: "50%", background: T.GREEN }} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Selected day header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, marginBottom: 10 }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: T.TEXT }}>{String(mobileDay).padStart(2, "0")}</div>
+          <div style={{ fontSize: 12, color: T.MUTED, textTransform: "capitalize" }}>{dow}</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 1 }}>{t.dayTotal.toUpperCase()}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: daytotal > 0 ? T.GREEN : T.MUTED }}>
+            {daytotal > 0 ? fmtC(daytotal) : "—"}
+          </div>
+        </div>
+      </div>
+
+      {/* Category rows for selected day */}
+      <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, overflow: "hidden" }}>
+        {CATS.map((c, i) => {
+          const val = md.days[mobileDay]?.[c.id];
+          return (
+            <div key={c.id} style={{ display: "flex", alignItems: "center", padding: "10px 14px", borderBottom: i < CATS.length - 1 ? `1px solid ${T.BORDER2}` : "none", gap: 10 }}>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 14, color: T.TEXT, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label}</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={val ?? ""}
+                onChange={e => setDay(mobileDay, c.id, e.target.value)}
+                placeholder="0"
+                style={{
+                  width: 110, background: T.BG, border: `1px solid ${T.BORDER}`, borderRadius: 6,
+                  color: val ? T.GREEN : T.TEXT, padding: "10px 12px", fontSize: 15, fontWeight: val ? 600 : 400,
+                  fontFamily: "inherit", textAlign: "right", outline: "none",
+                  WebkitAppearance: "none", MozAppearance: "textfield",
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ marginTop: 10, fontSize: 11, color: T.MUTED, textAlign: "center" }}>
+        {CUR.code} · {CUR.symbol}
+      </div>
+    </div>
   );
 }
