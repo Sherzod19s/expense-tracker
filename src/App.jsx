@@ -75,6 +75,151 @@ const THEMES = {
 const SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
+// ─────────────────────────  TRANSLATIONS  ─────────────────────────
+const STRINGS = {
+  en: {
+    appName: "Expense Tracker",
+    today: "TODAY",
+    spent: "SPENT",
+    net: "NET",
+    dailyLog: "Daily Log",
+    summary: "Summary",
+    budgetIncome: "Budget & Income",
+    settings: "Settings",
+    date: "DATE",
+    total: "TOTAL",
+    budget: "BUDGET",
+    remaining: "REMAINING",
+    totalIncome: "Total Income",
+    totalSpent: "Total Spent",
+    netRemaining: "Net Remaining",
+    budgetLeft: "Budget Left",
+    unbudgeted: "Unbudgeted",
+    budgetUsage: "BUDGET USAGE",
+    breakdown: "BREAKDOWN BY CATEGORY",
+    ofBudget: "of budget",
+    noExpenses: "No expenses logged yet for",
+    income: "INCOME",
+    budgets: "BUDGETS",
+    totalBudget: "TOTAL BUDGET",
+    noCategories: "No categories. Add some in Settings.",
+    noIncomeSources: "No income sources. Add some in Settings.",
+    noCategoriesShort: "No categories. Click + Add.",
+    noIncomeShort: "No income sources. Click + Add.",
+    preferences: "PREFERENCES",
+    currency: "CURRENCY",
+    theme: "THEME",
+    language: "LANGUAGE",
+    dark: "Dark",
+    light: "Light",
+    categories: "CATEGORIES",
+    incomeSources: "INCOME SOURCES",
+    add: "+ Add",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    delete: "Delete",
+    pickColor: "Pick color",
+    dataBackup: "DATA & BACKUP",
+    exportMonth: "Export",
+    exportAll: "Export all data",
+    csv: "CSV",
+    backupHint: "Data is stored locally in your browser (localStorage). Clearing site data will erase your records — download a CSV backup periodically. CSVs open in Excel, Google Sheets, or any spreadsheet app.",
+    clickToEdit: "Click to add/edit",
+    confirmDeleteCat: (name) => `Delete "${name}"? Entries logged under this category in the current month will also be removed.`,
+    confirmDeleteInc: (name) => `Delete "${name}"?`,
+    noDataExport: "No data to export yet.",
+    newCategory: "New Category",
+    newSource: "New Source",
+    prevYear: "Previous year",
+    nextYear: "Next year",
+    toggleTheme: "Toggle theme",
+    // Default category labels (only used if user hasn't customized)
+    defaultCats: {
+      food: "Food", house: "House Exp.", utilities: "Utilities", transport: "Transport",
+      health: "Health", hygiene: "Hygiene", mobile: "Mobile", rent: "Rent",
+      education: "Education", family: "Family", entertainment: "Entertain.",
+      gifts: "Gifts", charity: "Charity", unexpected: "Unexpected", clothing: "Clothing",
+    },
+    defaultIncome: {
+      s1: "Salary 1", e1: "Bonus / Extra 1", s2: "Salary 2",
+      e2: "Bonus / Extra 2", o1: "Other Income 1", o2: "Other Income 2",
+    },
+    months: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    monthsShort: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    locale: "en-US",
+  },
+  ru: {
+    appName: "Учёт расходов",
+    today: "СЕГОДНЯ",
+    spent: "ПОТРАЧЕНО",
+    net: "ОСТАТОК",
+    dailyLog: "Дневник",
+    summary: "Сводка",
+    budgetIncome: "Бюджет и доход",
+    settings: "Настройки",
+    date: "ДАТА",
+    total: "ИТОГО",
+    budget: "БЮДЖЕТ",
+    remaining: "ОСТАТОК",
+    totalIncome: "Общий доход",
+    totalSpent: "Всего потрачено",
+    netRemaining: "Чистый остаток",
+    budgetLeft: "Остаток бюджета",
+    unbudgeted: "Без бюджета",
+    budgetUsage: "ИСПОЛЬЗОВАНИЕ БЮДЖЕТА",
+    breakdown: "ПО КАТЕГОРИЯМ",
+    ofBudget: "от бюджета",
+    noExpenses: "Расходов пока нет:",
+    income: "ДОХОД",
+    budgets: "БЮДЖЕТЫ",
+    totalBudget: "ОБЩИЙ БЮДЖЕТ",
+    noCategories: "Нет категорий. Добавьте в Настройках.",
+    noIncomeSources: "Нет источников дохода. Добавьте в Настройках.",
+    noCategoriesShort: "Нет категорий. Нажмите + Добавить.",
+    noIncomeShort: "Нет источников дохода. Нажмите + Добавить.",
+    preferences: "НАСТРОЙКИ",
+    currency: "ВАЛЮТА",
+    theme: "ТЕМА",
+    language: "ЯЗЫК",
+    dark: "Тёмная",
+    light: "Светлая",
+    categories: "КАТЕГОРИИ",
+    incomeSources: "ИСТОЧНИКИ ДОХОДА",
+    add: "+ Добавить",
+    moveUp: "Вверх",
+    moveDown: "Вниз",
+    delete: "Удалить",
+    pickColor: "Выбрать цвет",
+    dataBackup: "ДАННЫЕ И БЭКАП",
+    exportMonth: "Экспорт",
+    exportAll: "Экспорт всех данных",
+    csv: "CSV",
+    backupHint: "Данные хранятся локально в браузере (localStorage). Очистка данных сайта удалит записи — периодически скачивайте CSV-бэкап. CSV открывается в Excel, Google Sheets или любом табличном редакторе.",
+    clickToEdit: "Нажмите для редактирования",
+    confirmDeleteCat: (name) => `Удалить «${name}»? Записи в этой категории за текущий месяц также будут удалены.`,
+    confirmDeleteInc: (name) => `Удалить «${name}»?`,
+    noDataExport: "Пока нет данных для экспорта.",
+    newCategory: "Новая категория",
+    newSource: "Новый источник",
+    prevYear: "Предыдущий год",
+    nextYear: "Следующий год",
+    toggleTheme: "Сменить тему",
+    defaultCats: {
+      food: "Еда", house: "Дом", utilities: "Коммунал.", transport: "Транспорт",
+      health: "Здоровье", hygiene: "Гигиена", mobile: "Связь", rent: "Аренда",
+      education: "Учёба", family: "Семья", entertainment: "Развлеч.",
+      gifts: "Подарки", charity: "Благотв.", unexpected: "Непредвид.", clothing: "Одежда",
+    },
+    defaultIncome: {
+      s1: "Зарплата 1", e1: "Бонус / Доп. 1", s2: "Зарплата 2",
+      e2: "Бонус / Доп. 2", o1: "Другой доход 1", o2: "Другой доход 2",
+    },
+    months: ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
+    monthsShort: ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"],
+    locale: "ru-RU",
+  },
+};
+
 // ─────────────────────────  HELPERS  ─────────────────────────
 const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -83,12 +228,20 @@ const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2
 const CFG_KEY = "xpns_config_v1";
 const monthKey = (y, m) => `xpns_${y}_${m}`;
 
-const defaultConfig = () => ({
+const defaultConfig = (lang = "en") => ({
   theme: "dark",
+  lang,
   currency: CURRENCIES[0],
-  categories: DEFAULT_CATS,
-  incomeSources: DEFAULT_INCOME,
+  categories: DEFAULT_CATS.map(c => ({ ...c, label: STRINGS[lang].defaultCats[c.id] || c.label })),
+  incomeSources: DEFAULT_INCOME.map(s => ({ ...s, label: STRINGS[lang].defaultIncome[s.id] || s.label })),
 });
+
+const detectLang = () => {
+  try {
+    const nav = navigator.language || "en";
+    return nav.toLowerCase().startsWith("ru") ? "ru" : "en";
+  } catch { return "en"; }
+};
 
 const loadConfig = () => {
   try {
@@ -97,13 +250,14 @@ const loadConfig = () => {
       const p = JSON.parse(raw);
       return {
         theme: p.theme === "light" ? "light" : "dark",
+        lang: p.lang === "ru" ? "ru" : "en",
         currency: p.currency || CURRENCIES[0],
         categories: Array.isArray(p.categories) ? p.categories : DEFAULT_CATS,
         incomeSources: Array.isArray(p.incomeSources) ? p.incomeSources : DEFAULT_INCOME,
       };
     }
   } catch {}
-  return defaultConfig();
+  return defaultConfig(detectLang());
 };
 
 const saveConfig = (cfg) => { try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch {} };
@@ -155,6 +309,7 @@ export default function App() {
   const inputRef = useRef(null);
 
   const T = THEMES[config.theme];
+  const t = STRINGS[config.lang] || STRINGS.en;
   const CATS = config.categories;
   const INCS = config.incomeSources;
   const CUR = config.currency;
@@ -209,13 +364,13 @@ export default function App() {
   const addCategory = () => {
     const id = newId();
     const color = COLOR_PALETTE[CATS.length % COLOR_PALETTE.length];
-    updateConfig({ ...config, categories: [...CATS, { id, label: "New Category", color }] });
+    updateConfig({ ...config, categories: [...CATS, { id, label: t.newCategory, color }] });
   };
   const updateCategory = (id, patch) =>
     updateConfig({ ...config, categories: CATS.map(c => c.id === id ? { ...c, ...patch } : c) });
   const deleteCategory = (id) => {
     const cat = CATS.find(c => c.id === id);
-    if (!window.confirm(`Delete "${cat.label}"? Entries logged under this category in the current month will also be removed.`)) return;
+    if (!window.confirm(t.confirmDeleteCat(cat.label))) return;
     updateConfig({ ...config, categories: CATS.filter(c => c.id !== id) });
     const newDays = { ...md.days };
     Object.keys(newDays).forEach(d => {
@@ -239,12 +394,12 @@ export default function App() {
 
   // ── Income source management ──
   const addIncome = () =>
-    updateConfig({ ...config, incomeSources: [...INCS, { id: newId(), label: "New Source" }] });
+    updateConfig({ ...config, incomeSources: [...INCS, { id: newId(), label: t.newSource }] });
   const updateIncomeSource = (id, patch) =>
     updateConfig({ ...config, incomeSources: INCS.map(s => s.id === id ? { ...s, ...patch } : s) });
   const deleteIncome = (id) => {
     const src = INCS.find(s => s.id === id);
-    if (!window.confirm(`Delete "${src.label}"?`)) return;
+    if (!window.confirm(t.confirmDeleteInc(src.label))) return;
     updateConfig({ ...config, incomeSources: INCS.filter(s => s.id !== id) });
     const newIncome = { ...md.income };
     delete newIncome[id];
@@ -331,7 +486,7 @@ export default function App() {
     });
 
     if (rows.length === 1) {
-      window.alert("No data to export yet.");
+      window.alert(t.noDataExport);
       return;
     }
 
@@ -360,26 +515,26 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, gap: 12, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 19, fontWeight: 700, color: T.TEXT, letterSpacing: -0.5 }}>
-                <span style={{ color: T.GREEN }}>{CUR.symbol}</span> Expense Tracker
+                <span style={{ color: T.GREEN }}>{CUR.symbol}</span> {t.appName}
               </div>
               <div style={{ fontSize: 12, color: T.MUTED, marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                <button onClick={() => setYear(year - 1)} style={{ ...smallBtn, height: 22, padding: "0 6px" }} title="Previous year">‹</button>
-                <span style={{ minWidth: 130, display: "inline-block", textAlign: "center" }}>{FULL[month]} {year}</span>
-                <button onClick={() => setYear(year + 1)} style={{ ...smallBtn, height: 22, padding: "0 6px" }} title="Next year">›</button>
+                <button onClick={() => setYear(year - 1)} style={{ ...smallBtn, height: 22, padding: "0 6px" }} title={t.prevYear}>‹</button>
+                <span style={{ minWidth: 130, display: "inline-block", textAlign: "center" }}>{t.months[month]} {year}</span>
+                <button onClick={() => setYear(year + 1)} style={{ ...smallBtn, height: 22, padding: "0 6px" }} title={t.nextYear}>›</button>
                 <button
                   onClick={() => { const d = new Date(); setYear(d.getFullYear()); setMonth(d.getMonth()); }}
                   style={{ ...smallBtn, height: 22, padding: "0 8px", fontSize: 10, letterSpacing: 1, marginLeft: 4 }}
-                >TODAY</button>
+                >{t.today}</button>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
               <button
                 onClick={() => updateConfig({ ...config, theme: config.theme === "dark" ? "light" : "dark" })}
                 style={{ ...smallBtn, height: 32, fontSize: 16, padding: "0 12px" }}
-                title="Toggle theme"
+                title={t.toggleTheme}
               >{config.theme === "dark" ? "☀" : "☾"}</button>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: T.MUTED, marginBottom: 2 }}>{totalIncome > 0 ? "NET" : "SPENT"}</div>
+                <div style={{ fontSize: 11, color: T.MUTED, marginBottom: 2 }}>{totalIncome > 0 ? t.net : t.spent}</div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: netColor }}>
                   {totalIncome > 0 ? (net >= 0 ? "+" : "") + fmtC(net) : fmtC(totalSpent)}
                 </div>
@@ -389,7 +544,7 @@ export default function App() {
 
           {/* Month tabs */}
           <div style={{ display: "flex", gap: 1, overflowX: "auto" }}>
-            {SHORT.map((m, i) => (
+            {t.monthsShort.map((m, i) => (
               <button key={i} onClick={() => { setMonth(i); setEditCell(null); }} style={{
                 padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit",
                 background: month === i ? T.BG : "transparent",
@@ -406,7 +561,7 @@ export default function App() {
 
       {/* ══════ VIEW TABS ══════ */}
       <div style={{ background: T.BG, borderBottom: `1px solid ${T.BORDER2}`, padding: "0 20px", display: "flex", gap: 0, overflowX: "auto" }}>
-        {[["log", "Daily Log"], ["summary", "Summary"], ["budget", "Budget & Income"], ["settings", "Settings"]].map(([v, label]) => (
+        {[["log", t.dailyLog], ["summary", t.summary], ["budget", t.budgetIncome], ["settings", t.settings]].map(([v, label]) => (
           <button key={v} onClick={() => setView(v)} style={{
             padding: "10px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
             background: "transparent", color: view === v ? T.GREEN : T.MUTED, border: "none",
@@ -420,24 +575,24 @@ export default function App() {
       {view === "log" && (
         <div style={{ overflowX: "auto" }}>
           {CATS.length === 0 ? (
-            <EmptyState T={T} text="No categories yet. Add some in Settings." />
+            <EmptyState T={T} text={t.noCategories} />
           ) : (
           <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 1300, fontSize: 13 }}>
             <thead>
               <tr style={{ background: T.BG, position: "sticky", top: 0, zIndex: 10 }}>
-                <th style={{ padding: "10px 12px", textAlign: "left", fontSize: 10, color: T.MUTED, fontWeight: 700, borderRight: `1px solid ${T.BORDER2}`, borderBottom: `1px solid ${T.BORDER}`, position: "sticky", left: 0, background: T.BG, minWidth: 76, letterSpacing: 1 }}>DATE</th>
+                <th style={{ padding: "10px 12px", textAlign: "left", fontSize: 10, color: T.MUTED, fontWeight: 700, borderRight: `1px solid ${T.BORDER2}`, borderBottom: `1px solid ${T.BORDER}`, position: "sticky", left: 0, background: T.BG, minWidth: 76, letterSpacing: 1 }}>{t.date}</th>
                 {CATS.map(c => (
                   <th key={c.id} style={{ padding: "10px 8px", textAlign: "right", fontSize: 10, color: c.color, fontWeight: 700, borderRight: `1px solid ${T.BORDER2}`, borderBottom: `1px solid ${T.BORDER}`, whiteSpace: "nowrap", minWidth: 82, letterSpacing: 0.5 }}>
                     {c.label.toUpperCase()}
                   </th>
                 ))}
-                <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 10, color: T.MUTED, fontWeight: 700, borderBottom: `1px solid ${T.BORDER}`, minWidth: 90, letterSpacing: 1 }}>TOTAL</th>
+                <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 10, color: T.MUTED, fontWeight: 700, borderBottom: `1px solid ${T.BORDER}`, minWidth: 90, letterSpacing: 1 }}>{t.total}</th>
               </tr>
             </thead>
             <tbody>
               {Array.from({ length: nd }, (_, i) => i + 1).map(day => {
                 const dt = new Date(year, month, day);
-                const dow = dt.toLocaleDateString("en", { weekday: "short" });
+                const dow = dt.toLocaleDateString(t.locale, { weekday: "short" });
                 const isWknd = dt.getDay() === 0 || dt.getDay() === 6;
                 const daytotal = dayTotals[day];
                 const rowBg = isWknd ? T.WKND : T.SURF;
@@ -467,7 +622,7 @@ export default function App() {
                         <td key={c.id} onClick={() => startEdit(day, c.id)} style={{
                           padding: "5px 8px", textAlign: "right", cursor: "text",
                           color: val ? T.TEXT : T.BORDER2, borderRight: `1px solid ${T.BORDER2}`, userSelect: "none"
-                        }} title="Click to add/edit">
+                        }} title={t.clickToEdit}>
                           {val ? fmt(val) : "·"}
                         </td>
                       );
@@ -481,7 +636,7 @@ export default function App() {
             </tbody>
             <tfoot>
               <tr style={{ background: T.BG, borderTop: `2px solid ${T.BORDER}` }}>
-                <td style={{ padding: "8px 12px", fontSize: 11, color: T.GREEN, fontWeight: 700, letterSpacing: 1, borderRight: `1px solid ${T.BORDER2}`, position: "sticky", left: 0, background: T.BG, borderTop: `2px solid ${T.BORDER}` }}>SPENT</td>
+                <td style={{ padding: "8px 12px", fontSize: 11, color: T.GREEN, fontWeight: 700, letterSpacing: 1, borderRight: `1px solid ${T.BORDER2}`, position: "sticky", left: 0, background: T.BG, borderTop: `2px solid ${T.BORDER}` }}>{t.spent}</td>
                 {CATS.map(c => (
                   <td key={c.id} style={{ padding: "8px", textAlign: "right", color: catTotals[c.id] > 0 ? c.color : T.BORDER2, fontWeight: 600, borderRight: `1px solid ${T.BORDER2}` }}>
                     {catTotals[c.id] > 0 ? fmtT(catTotals[c.id]) : "—"}
@@ -490,7 +645,7 @@ export default function App() {
                 <td style={{ padding: "8px 12px", textAlign: "right", fontSize: 14, color: T.GREEN, fontWeight: 700 }}>{fmtT(totalSpent)}</td>
               </tr>
               <tr style={{ background: T.BG }}>
-                <td style={{ padding: "6px 12px", fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, borderRight: `1px solid ${T.BORDER2}`, position: "sticky", left: 0, background: T.BG }}>BUDGET</td>
+                <td style={{ padding: "6px 12px", fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, borderRight: `1px solid ${T.BORDER2}`, position: "sticky", left: 0, background: T.BG }}>{t.budget}</td>
                 {CATS.map(c => (
                   <td key={c.id} style={{ padding: "6px 8px", textAlign: "right", color: md.budgets[c.id] > 0 ? T.MUTED : T.BORDER2, borderRight: `1px solid ${T.BORDER2}` }}>
                     {md.budgets[c.id] > 0 ? fmtT(md.budgets[c.id]) : "—"}
@@ -499,7 +654,7 @@ export default function App() {
                 <td style={{ padding: "6px 12px", textAlign: "right", color: T.MUTED }}>{totalBudget > 0 ? fmtT(totalBudget) : "—"}</td>
               </tr>
               <tr style={{ background: T.BG }}>
-                <td style={{ padding: "6px 12px", fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, borderRight: `1px solid ${T.BORDER2}`, position: "sticky", left: 0, background: T.BG }}>REMAINING</td>
+                <td style={{ padding: "6px 12px", fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, borderRight: `1px solid ${T.BORDER2}`, position: "sticky", left: 0, background: T.BG }}>{t.remaining}</td>
                 {CATS.map(c => {
                   const rem = (md.budgets[c.id] || 0) - catTotals[c.id];
                   const hasBudget = md.budgets[c.id] > 0;
@@ -524,10 +679,10 @@ export default function App() {
         <div style={{ padding: 20, maxWidth: 900 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
             {[
-              { label: "Total Income", value: fmtC(totalIncome), color: totalIncome > 0 ? T.GREEN : T.MUTED },
-              { label: "Total Spent",  value: fmtC(totalSpent),  color: totalSpent  > 0 ? T.RED   : T.MUTED },
+              { label: t.totalIncome, value: fmtC(totalIncome), color: totalIncome > 0 ? T.GREEN : T.MUTED },
+              { label: t.totalSpent,  value: fmtC(totalSpent),  color: totalSpent  > 0 ? T.RED   : T.MUTED },
               {
-                label: totalIncome > 0 ? "Net Remaining" : totalBudget > 0 ? "Budget Left" : "Unbudgeted",
+                label: totalIncome > 0 ? t.netRemaining : totalBudget > 0 ? t.budgetLeft : t.unbudgeted,
                 value: totalIncome > 0 ? fmtC(net) : totalBudget > 0 ? fmtC(totalBudget - totalSpent) : fmtC(totalSpent),
                 color: totalIncome > 0 ? netColor : totalBudget > 0 ? (totalBudget - totalSpent >= 0 ? T.GREEN : T.RED) : T.MUTED,
               },
@@ -542,7 +697,7 @@ export default function App() {
           {totalBudget > 0 && (
             <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, marginBottom: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1 }}>BUDGET USAGE</span>
+                <span style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1 }}>{t.budgetUsage}</span>
                 <span style={{ fontSize: 13, color: totalSpent / totalBudget > 1 ? T.RED : totalSpent / totalBudget > 0.8 ? T.YELLOW : T.GREEN, fontWeight: 600 }}>
                   {((totalSpent / totalBudget) * 100).toFixed(1)}%
                 </span>
@@ -557,7 +712,7 @@ export default function App() {
           )}
 
           <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20 }}>
-            <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1, marginBottom: 18 }}>BREAKDOWN BY CATEGORY</div>
+            <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1, marginBottom: 18 }}>{t.breakdown}</div>
             {CATS.filter(c => catTotals[c.id] > 0).sort((a, b) => catTotals[b.id] - catTotals[a.id]).map(c => {
               const pct = totalSpent > 0 ? (catTotals[c.id] / totalSpent) * 100 : 0;
               const bpct = md.budgets[c.id] > 0 ? (catTotals[c.id] / md.budgets[c.id]) * 100 : null;
@@ -570,7 +725,7 @@ export default function App() {
                       <span style={{ fontSize: 11, color: T.MUTED }}>{pct.toFixed(1)}%</span>
                       {bpct !== null && (
                         <span style={{ fontSize: 11, color: bpct > 100 ? T.RED : bpct > 80 ? T.YELLOW : T.GREEN }}>
-                          {bpct.toFixed(0)}% of budget
+                          {bpct.toFixed(0)}% {t.ofBudget}
                         </span>
                       )}
                     </div>
@@ -583,7 +738,7 @@ export default function App() {
             })}
             {totalSpent === 0 && (
               <div style={{ color: T.MUTED, fontSize: 13, padding: "20px 0", textAlign: "center" }}>
-                No expenses logged yet for {FULL[month]}.
+                {t.noExpenses} {t.months[month]}.
               </div>
             )}
           </div>
@@ -597,9 +752,9 @@ export default function App() {
             {/* Income */}
             <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20 }}>
               <div style={{ fontSize: 11, color: T.GREEN, fontWeight: 700, letterSpacing: 1, marginBottom: 18 }}>
-                INCOME · {FULL[month].toUpperCase()} {year}
+                {t.income} · {t.months[month].toUpperCase()} {year}
               </div>
-              {INCS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13 }}>No income sources. Add some in Settings.</div>}
+              {INCS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13 }}>{t.noIncomeSources}</div>}
               {INCS.map(src => (
                 <div key={src.id} style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 0.5, marginBottom: 5 }}>{src.label.toUpperCase()}</div>
@@ -613,7 +768,7 @@ export default function App() {
                 </div>
               ))}
               <div style={{ borderTop: `1px solid ${T.BORDER}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                <span style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1 }}>TOTAL INCOME</span>
+                <span style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1 }}>{t.totalIncome.toUpperCase()}</span>
                 <span style={{ fontSize: 16, fontWeight: 700, color: T.GREEN }}>{fmtC(totalIncome)}</span>
               </div>
             </div>
@@ -621,9 +776,9 @@ export default function App() {
             {/* Budgets */}
             <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, overflowY: "auto", maxHeight: 600 }}>
               <div style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, marginBottom: 18 }}>
-                BUDGETS · {FULL[month].toUpperCase()} {year}
+                {t.budgets} · {t.months[month].toUpperCase()} {year}
               </div>
-              {CATS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13 }}>No categories. Add some in Settings.</div>}
+              {CATS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13 }}>{t.noCategories}</div>}
               {CATS.map(c => (
                 <div key={c.id} style={{ marginBottom: 12 }}>
                   <div style={{ fontSize: 11, color: c.color, letterSpacing: 0.5, marginBottom: 5 }}>{c.label.toUpperCase()}</div>
@@ -637,7 +792,7 @@ export default function App() {
                 </div>
               ))}
               <div style={{ borderTop: `1px solid ${T.BORDER}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                <span style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1 }}>TOTAL BUDGET</span>
+                <span style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1 }}>{t.totalBudget}</span>
                 <span style={{ fontSize: 16, fontWeight: 700, color: T.MUTED }}>{fmtC(totalBudget)}</span>
               </div>
             </div>
@@ -651,10 +806,21 @@ export default function App() {
 
           {/* Preferences */}
           <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, marginBottom: 20 }}>
-            <div style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, marginBottom: 18 }}>PREFERENCES</div>
+            <div style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, marginBottom: 18 }}>{t.preferences}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
               <div>
-                <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 0.5, marginBottom: 5 }}>CURRENCY</div>
+                <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 0.5, marginBottom: 5 }}>{t.language}</div>
+                <select
+                  value={config.lang}
+                  onChange={e => updateConfig({ ...config, lang: e.target.value })}
+                  style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
+                >
+                  <option value="en" style={{ background: T.BG, color: T.TEXT }}>English</option>
+                  <option value="ru" style={{ background: T.BG, color: T.TEXT }}>Русский</option>
+                </select>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 0.5, marginBottom: 5 }}>{t.currency}</div>
                 <select
                   value={CUR.code}
                   onChange={e => {
@@ -671,14 +837,14 @@ export default function App() {
                 </select>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 0.5, marginBottom: 5 }}>THEME</div>
+                <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 0.5, marginBottom: 5 }}>{t.theme}</div>
                 <select
                   value={config.theme}
                   onChange={e => updateConfig({ ...config, theme: e.target.value })}
                   style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
                 >
-                  <option value="dark" style={{ background: T.BG, color: T.TEXT }}>Dark</option>
-                  <option value="light" style={{ background: T.BG, color: T.TEXT }}>Light</option>
+                  <option value="dark" style={{ background: T.BG, color: T.TEXT }}>{t.dark}</option>
+                  <option value="light" style={{ background: T.BG, color: T.TEXT }}>{t.light}</option>
                 </select>
               </div>
             </div>
@@ -687,13 +853,13 @@ export default function App() {
           {/* Categories */}
           <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, marginBottom: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-              <span style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1 }}>CATEGORIES</span>
-              <button onClick={addCategory} style={{ ...smallBtn, color: T.GREEN, borderColor: T.GREEN }}>+ Add</button>
+              <span style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1 }}>{t.categories}</span>
+              <button onClick={addCategory} style={{ ...smallBtn, color: T.GREEN, borderColor: T.GREEN }}>{t.add}</button>
             </div>
-            {CATS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13, padding: "10px 0" }}>No categories. Click + Add.</div>}
+            {CATS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13, padding: "10px 0" }}>{t.noCategoriesShort}</div>}
             {CATS.map((c, i) => (
               <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: 8, background: T.BG, border: `1px solid ${T.BORDER2}`, borderRadius: 6 }}>
-                <label style={{ position: "relative", width: 22, height: 22, borderRadius: 4, background: c.color, border: `1px solid ${T.BORDER}`, cursor: "pointer", flexShrink: 0 }} title="Pick color">
+                <label style={{ position: "relative", width: 22, height: 22, borderRadius: 4, background: c.color, border: `1px solid ${T.BORDER}`, cursor: "pointer", flexShrink: 0 }} title={t.pickColor}>
                   <input
                     type="color"
                     value={c.color}
@@ -707,9 +873,9 @@ export default function App() {
                   onChange={e => updateCategory(c.id, { label: e.target.value })}
                   style={{ ...inputStyle, padding: "6px 10px", flex: 1, minWidth: 0 }}
                 />
-                <button onClick={() => moveCategory(c.id, -1)} disabled={i === 0} style={{ ...smallBtn, opacity: i === 0 ? 0.3 : 1 }} title="Move up">↑</button>
-                <button onClick={() => moveCategory(c.id, 1)} disabled={i === CATS.length - 1} style={{ ...smallBtn, opacity: i === CATS.length - 1 ? 0.3 : 1 }} title="Move down">↓</button>
-                <button onClick={() => deleteCategory(c.id)} style={dangerBtn} title="Delete">✕</button>
+                <button onClick={() => moveCategory(c.id, -1)} disabled={i === 0} style={{ ...smallBtn, opacity: i === 0 ? 0.3 : 1 }} title={t.moveUp}>↑</button>
+                <button onClick={() => moveCategory(c.id, 1)} disabled={i === CATS.length - 1} style={{ ...smallBtn, opacity: i === CATS.length - 1 ? 0.3 : 1 }} title={t.moveDown}>↓</button>
+                <button onClick={() => deleteCategory(c.id)} style={dangerBtn} title={t.delete}>✕</button>
               </div>
             ))}
           </div>
@@ -717,10 +883,10 @@ export default function App() {
           {/* Income sources */}
           <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-              <span style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1 }}>INCOME SOURCES</span>
-              <button onClick={addIncome} style={{ ...smallBtn, color: T.GREEN, borderColor: T.GREEN }}>+ Add</button>
+              <span style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1 }}>{t.incomeSources}</span>
+              <button onClick={addIncome} style={{ ...smallBtn, color: T.GREEN, borderColor: T.GREEN }}>{t.add}</button>
             </div>
-            {INCS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13, padding: "10px 0" }}>No income sources. Click + Add.</div>}
+            {INCS.length === 0 && <div style={{ color: T.MUTED, fontSize: 13, padding: "10px 0" }}>{t.noIncomeShort}</div>}
             {INCS.map((s, i) => (
               <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: 8, background: T.BG, border: `1px solid ${T.BORDER2}`, borderRadius: 6 }}>
                 <input
@@ -729,31 +895,31 @@ export default function App() {
                   onChange={e => updateIncomeSource(s.id, { label: e.target.value })}
                   style={{ ...inputStyle, padding: "6px 10px", flex: 1, minWidth: 0 }}
                 />
-                <button onClick={() => moveIncome(s.id, -1)} disabled={i === 0} style={{ ...smallBtn, opacity: i === 0 ? 0.3 : 1 }} title="Move up">↑</button>
-                <button onClick={() => moveIncome(s.id, 1)} disabled={i === INCS.length - 1} style={{ ...smallBtn, opacity: i === INCS.length - 1 ? 0.3 : 1 }} title="Move down">↓</button>
-                <button onClick={() => deleteIncome(s.id)} style={dangerBtn} title="Delete">✕</button>
+                <button onClick={() => moveIncome(s.id, -1)} disabled={i === 0} style={{ ...smallBtn, opacity: i === 0 ? 0.3 : 1 }} title={t.moveUp}>↑</button>
+                <button onClick={() => moveIncome(s.id, 1)} disabled={i === INCS.length - 1} style={{ ...smallBtn, opacity: i === INCS.length - 1 ? 0.3 : 1 }} title={t.moveDown}>↓</button>
+                <button onClick={() => deleteIncome(s.id)} style={dangerBtn} title={t.delete}>✕</button>
               </div>
             ))}
           </div>
 
           <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, marginTop: 20 }}>
-            <div style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, marginBottom: 14 }}>DATA & BACKUP</div>
+            <div style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, marginBottom: 14 }}>{t.dataBackup}</div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
               <button
                 onClick={exportCurrentMonth}
                 style={{ ...smallBtn, padding: "8px 14px", height: "auto", color: T.TEXT, borderColor: T.BORDER }}
               >
-                ⬇ Export {SHORT[month]} {year} (CSV)
+                ⬇ {t.exportMonth} {t.monthsShort[month]} {year} ({t.csv})
               </button>
               <button
                 onClick={exportAllData}
                 style={{ ...smallBtn, padding: "8px 14px", height: "auto", color: T.GREEN, borderColor: T.GREEN }}
               >
-                ⬇ Export all data (CSV)
+                ⬇ {t.exportAll} ({t.csv})
               </button>
             </div>
             <div style={{ fontSize: 11, color: T.MUTED, lineHeight: 1.6 }}>
-              Data is stored locally in your browser (localStorage). Clearing site data will erase your records — download a CSV backup periodically. CSVs open in Excel, Google Sheets, or any spreadsheet app.
+              {t.backupHint}
             </div>
           </div>
         </div>
