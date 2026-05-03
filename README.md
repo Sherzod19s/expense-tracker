@@ -2,7 +2,7 @@
 
 A clean, keyboard-friendly monthly expense tracker built with React + Vite. No accounts, no servers, no tracking — your data stays in your browser.
 
-🔗 **[Try it live →](https://expense-tracker-sherzod19s.vercel.app)**
+🔗 **[Try it live →](https://expense-tracker-tisw.vercel.app)**
 
 ![Expense Tracker screenshot](src/assets/hero.png)
 
@@ -24,7 +24,7 @@ A clean, keyboard-friendly monthly expense tracker built with React + Vite. No a
 
 ## How to use it
 
-1. Open the [live demo](https://expense-tracker-sherzod19s.vercel.app).
+1. Open the [live demo](https://expense-tracker-tisw.vercel.app).
 2. Pick your currency in **Settings**, customize your categories.
 3. Set monthly budgets and income in **Budget & Income**.
 4. Log expenses in **Daily Log** — click a cell, type a number, hit Enter.
