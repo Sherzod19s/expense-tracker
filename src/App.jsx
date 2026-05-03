@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 // ─────────────────────────  DEFAULTS  ─────────────────────────
 const DEFAULT_CATS = [
@@ -142,6 +143,19 @@ const STRINGS = {
     cancel: "Cancel",
     save: "Save",
     dayTotal: "Day total",
+    trends: "Trends",
+    monthlyOverview: "MONTHLY OVERVIEW",
+    spendingByCategory: "SPENDING BY CATEGORY",
+    last6Months: "Last 6 months",
+    last12Months: "Last 12 months",
+    allTime: "All time",
+    needMoreData: "Log expenses for at least 2 months to see trends.",
+    noDataYet: "No data yet — start logging in the Daily Log tab.",
+    avgPerMonth: "Avg per month",
+    totalAcross: "Total across",
+    months_count: (n) => `${n} months`,
+    spent_legend: "Spent",
+    income_legend: "Income",
     // Default category labels (only used if user hasn't customized)
     defaultCats: {
       food: "Food", house: "House Exp.", utilities: "Utilities", transport: "Transport",
@@ -222,6 +236,26 @@ const STRINGS = {
     cancel: "Отмена",
     save: "Сохранить",
     dayTotal: "Итого за день",
+    trends: "Динамика",
+    monthlyOverview: "ОБЗОР ПО МЕСЯЦАМ",
+    spendingByCategory: "РАСХОДЫ ПО КАТЕГОРИЯМ",
+    last6Months: "Последние 6 месяцев",
+    last12Months: "Последние 12 месяцев",
+    allTime: "Всё время",
+    needMoreData: "Записывайте расходы хотя бы за 2 месяца, чтобы увидеть динамику.",
+    noDataYet: "Пока нет данных — начните вводить во вкладке Дневник.",
+    avgPerMonth: "Среднее за месяц",
+    totalAcross: "Всего за",
+    months_count: (n) => {
+      const lastTwo = n % 100;
+      const last = n % 10;
+      if (lastTwo >= 11 && lastTwo <= 14) return `${n} месяцев`;
+      if (last === 1) return `${n} месяц`;
+      if (last >= 2 && last <= 4) return `${n} месяца`;
+      return `${n} месяцев`;
+    },
+    spent_legend: "Потрачено",
+    income_legend: "Доход",
     defaultCats: {
       food: "Еда", house: "Дом", utilities: "Коммунал.", transport: "Транспорт",
       health: "Здоровье", hygiene: "Гигиена", mobile: "Связь", rent: "Аренда",
@@ -328,6 +362,7 @@ export default function App() {
   const [editVal, setEditVal] = useState("");
   const [mobileDay, setMobileDay] = useState(now.getDate());
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
+  const [trendRange, setTrendRange] = useState("12");
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -373,6 +408,36 @@ export default function App() {
   const totalSpent = CATS.reduce((s, c) => s + catTotals[c.id], 0);
   const totalBudget = CATS.reduce((s, c) => s + (md.budgets[c.id] || 0), 0);
   const totalIncome = INCS.reduce((s, src) => s + (md.income[src.id] || 0), 0);
+
+  // Collect all months from localStorage for trends view
+  const allMonthsData = useMemo(() => {
+    const out = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const m = key?.match(/^xpns_(\d{4})_(\d+)$/);
+        if (!m) continue;
+        const y = parseInt(m[1]);
+        const mo = parseInt(m[2]);
+        let data;
+        try { data = JSON.parse(localStorage.getItem(key)); } catch { continue; }
+        if (!data) continue;
+
+        const catSums = {};
+        let total = 0;
+        Object.values(data.days || {}).forEach(dayObj => {
+          Object.entries(dayObj).forEach(([catId, amt]) => {
+            catSums[catId] = (catSums[catId] || 0) + amt;
+            total += amt;
+          });
+        });
+        const incomeTotal = Object.values(data.income || {}).reduce((a, b) => a + b, 0);
+        out.push({ year: y, month: mo, total, incomeTotal, catSums });
+      }
+    } catch {}
+    out.sort((a, b) => a.year - b.year || a.month - b.month);
+    return out;
+  }, [view, year, month, md]);
 
   const startEdit = (day, key) => {
     const cur = md.days[day]?.[key];
@@ -589,7 +654,7 @@ export default function App() {
 
       {/* ══════ VIEW TABS ══════ */}
       <div style={{ background: T.BG, borderBottom: `1px solid ${T.BORDER2}`, padding: "0 20px", display: "flex", gap: 0, overflowX: "auto" }}>
-        {[["log", t.dailyLog], ["summary", t.summary], ["budget", t.budgetIncome], ["settings", t.settings]].map(([v, label]) => (
+        {[["log", t.dailyLog], ["summary", t.summary], ["trends", t.trends], ["budget", t.budgetIncome], ["settings", t.settings]].map(([v, label]) => (
           <button key={v} onClick={() => setView(v)} style={{
             padding: "10px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
             background: "transparent", color: view === v ? T.GREEN : T.MUTED, border: "none",
@@ -799,6 +864,16 @@ export default function App() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ══════ TRENDS ══════ */}
+      {view === "trends" && (
+        <TrendsView
+          T={T} t={t} CATS={CATS} CUR={CUR}
+          allMonthsData={allMonthsData}
+          trendRange={trendRange} setTrendRange={setTrendRange}
+          isMobile={isMobile} fmtT={fmtT} fmtC={fmtC}
+        />
       )}
 
       {/* ══════ BUDGET & INCOME (per-month numbers) ══════ */}
@@ -1074,6 +1149,172 @@ function MobileDailyLog({ T, t, CATS, md, year, month, nd, mobileDay, setMobileD
 
       <div style={{ marginTop: 10, fontSize: 11, color: T.MUTED, textAlign: "center" }}>
         {CUR.code} · {CUR.symbol}
+      </div>
+    </div>
+  );
+}
+
+function TrendsView({ T, t, CATS, CUR, allMonthsData, trendRange, setTrendRange, isMobile, fmtT, fmtC }) {
+  // Filter by selected range
+  const filtered = useMemo(() => {
+    if (trendRange === "all") return allMonthsData;
+    const n = parseInt(trendRange);
+    return allMonthsData.slice(-n);
+  }, [allMonthsData, trendRange]);
+
+  if (allMonthsData.length === 0) {
+    return (
+      <div style={{ padding: isMobile ? 12 : 20, maxWidth: 1000 }}>
+        <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 40, textAlign: "center", color: T.MUTED, fontSize: 14 }}>
+          {t.noDataYet}
+        </div>
+      </div>
+    );
+  }
+
+  if (allMonthsData.length < 2) {
+    return (
+      <div style={{ padding: isMobile ? 12 : 20, maxWidth: 1000 }}>
+        <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 40, textAlign: "center", color: T.MUTED, fontSize: 14 }}>
+          {t.needMoreData}
+        </div>
+      </div>
+    );
+  }
+
+  // Build chart data
+  const monthLabel = (entry) => `${t.monthsShort[entry.month]} ${String(entry.year).slice(2)}`;
+
+  const overviewData = filtered.map(e => ({
+    name: monthLabel(e),
+    [t.spent_legend]: Math.round(e.total * 100) / 100,
+    [t.income_legend]: Math.round(e.incomeTotal * 100) / 100,
+  }));
+
+  const categoryData = filtered.map(e => {
+    const row = { name: monthLabel(e) };
+    CATS.forEach(c => {
+      row[c.label] = Math.round((e.catSums[c.id] || 0) * 100) / 100;
+    });
+    return row;
+  });
+
+  // Stats: avg per month and total
+  const totalSum = filtered.reduce((s, e) => s + e.total, 0);
+  const avgPerMonth = totalSum / filtered.length;
+
+  // Categories that have any data in the filtered range (cleaner chart)
+  const activeCats = CATS.filter(c => filtered.some(e => (e.catSums[c.id] || 0) > 0));
+
+  // Custom tooltip for both charts (theme-aware)
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    return (
+      <div style={{
+        background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 6,
+        padding: "8px 12px", fontFamily: "inherit", fontSize: 12,
+      }}>
+        <div style={{ color: T.TEXT, fontWeight: 600, marginBottom: 4 }}>{label}</div>
+        {payload
+          .filter(p => p.value > 0)
+          .sort((a, b) => b.value - a.value)
+          .map(p => (
+          <div key={p.dataKey} style={{ color: p.color, display: "flex", justifyContent: "space-between", gap: 12 }}>
+            <span>{p.dataKey}</span>
+            <span style={{ fontWeight: 600 }}>{fmtT(p.value)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const rangeOptions = [
+    { value: "6", label: t.last6Months },
+    { value: "12", label: t.last12Months },
+    { value: "all", label: t.allTime },
+  ];
+
+  return (
+    <div style={{ padding: isMobile ? 12 : 20, maxWidth: 1000 }}>
+      {/* Range selector */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        {rangeOptions.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setTrendRange(opt.value)}
+            style={{
+              padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+              background: trendRange === opt.value ? T.GREEN : "transparent",
+              color: trendRange === opt.value ? "#000" : T.MUTED,
+              border: `1px solid ${trendRange === opt.value ? T.GREEN : T.BORDER}`,
+              borderRadius: 6, fontWeight: trendRange === opt.value ? 600 : 400, outline: "none",
+            }}
+          >{opt.label}</button>
+        ))}
+      </div>
+
+      {/* Stats row */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(2, 1fr)", gap: 12, marginBottom: 20, maxWidth: 600 }}>
+        <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: "14px 18px" }}>
+          <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 1, marginBottom: 6 }}>{t.avgPerMonth.toUpperCase()}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: T.TEXT }}>{fmtC(avgPerMonth)}</div>
+        </div>
+        <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: "14px 18px" }}>
+          <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 1, marginBottom: 6 }}>
+            {t.totalAcross.toUpperCase()} {t.months_count(filtered.length).toUpperCase()}
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: T.TEXT }}>{fmtC(totalSum)}</div>
+        </div>
+      </div>
+
+      {/* Overview chart */}
+      <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: isMobile ? 12 : 20, marginBottom: 20 }}>
+        <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1, marginBottom: 16, fontWeight: 700 }}>{t.monthlyOverview}</div>
+        <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
+          <LineChart data={overviewData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={T.BORDER2} />
+            <XAxis dataKey="name" stroke={T.MUTED} tick={{ fontSize: 11, fill: T.MUTED }} />
+            <YAxis stroke={T.MUTED} tick={{ fontSize: 11, fill: T.MUTED }} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend wrapperStyle={{ fontSize: 12, color: T.TEXT }} iconType="circle" />
+            <Line type="monotone" dataKey={t.spent_legend} stroke={T.RED} strokeWidth={2} dot={{ r: 3, fill: T.RED }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey={t.income_legend} stroke={T.GREEN} strokeWidth={2} dot={{ r: 3, fill: T.GREEN }} activeDot={{ r: 5 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Per-category chart */}
+      <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: isMobile ? 12 : 20 }}>
+        <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1, marginBottom: 16, fontWeight: 700 }}>{t.spendingByCategory}</div>
+        {activeCats.length === 0 ? (
+          <div style={{ color: T.MUTED, fontSize: 13, padding: "20px 0", textAlign: "center" }}>
+            {t.noDataYet}
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={isMobile ? 280 : 360}>
+            <LineChart data={categoryData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.BORDER2} />
+              <XAxis dataKey="name" stroke={T.MUTED} tick={{ fontSize: 11, fill: T.MUTED }} />
+              <YAxis stroke={T.MUTED} tick={{ fontSize: 11, fill: T.MUTED }} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ fontSize: 11, color: T.TEXT, paddingTop: 10 }} iconType="circle" />
+              {activeCats.map(c => (
+                <Line
+                  key={c.id}
+                  type="monotone"
+                  dataKey={c.label}
+                  stroke={c.color}
+                  strokeWidth={2}
+                  dot={{ r: 2, fill: c.color }}
+                  activeDot={{ r: 4 }}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+        <div style={{ fontSize: 11, color: T.MUTED, marginTop: 10, textAlign: "center" }}>
+          {isMobile ? "" : "Click legend items to toggle visibility"}
+        </div>
       </div>
     </div>
   );
