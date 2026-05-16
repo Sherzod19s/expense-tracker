@@ -31,7 +31,8 @@ const DEFAULT_INCOME = [
 
 const CURRENCIES = [
   { code: "USD", symbol: "$",   locale: "en-US" },
-  { code: "TJS", symbol: "смн",   locale: "ru-RU" },
+  { code: "TJS", symbol: "смн", locale: "ru-RU"},
+  { code: "KZT", symbol: "₸",   locale: "ru-RU" },
   { code: "EUR", symbol: "€",   locale: "de-DE" },
   { code: "GBP", symbol: "£",   locale: "en-GB" },
   { code: "JPY", symbol: "¥",   locale: "ja-JP" },
