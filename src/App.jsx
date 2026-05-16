@@ -31,6 +31,7 @@ const DEFAULT_INCOME = [
 
 const CURRENCIES = [
   { code: "USD", symbol: "$",   locale: "en-US" },
+  { code: "TJS", symbol: "смн",   locale: "ru-RU" },
   { code: "EUR", symbol: "€",   locale: "de-DE" },
   { code: "GBP", symbol: "£",   locale: "en-GB" },
   { code: "JPY", symbol: "¥",   locale: "ja-JP" },
@@ -476,6 +477,14 @@ export default function App() {
   const CATS = config.categories;
   const INCS = config.incomeSources;
   const CUR = config.currency;
+
+  // Sync body background and iOS status-bar color with current theme
+  useEffect(() => {
+    document.body.style.backgroundColor = T.BG;
+    document.documentElement.style.backgroundColor = T.BG;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", T.BG);
+  }, [T.BG]);
 
   const fmt  = (n) => n && n !== 0 ? n.toLocaleString(CUR.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
   const fmtT = (n) => n.toLocaleString(CUR.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
