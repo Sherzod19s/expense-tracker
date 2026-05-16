@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 // ─────────────────────────  DEFAULTS  ─────────────────────────
 const DEFAULT_CATS = [
@@ -156,6 +156,48 @@ const STRINGS = {
     months_count: (n) => `${n} months`,
     spent_legend: "Spent",
     income_legend: "Income",
+    // Breakdown
+    breakdown_tab: "Breakdown",
+    thisMonth: "This month",
+    last3Months: "Last 3 months",
+    thisYear: "This year",
+    totalSpent_period: "Total spent",
+    barChartTitle: "BREAKDOWN BY CATEGORY",
+    noSpending: "No spending in this period.",
+    of_total: "of total",
+    // Goals
+    goals_tab: "Goals",
+    addGoal: "+ New goal",
+    editGoal: "Edit goal",
+    goalName: "Goal name",
+    goalNamePh: "e.g., Istanbul trip with family",
+    goalDescription: "Description (optional)",
+    goalDescPh: "Why this matters to you",
+    targetAmount: "Target amount",
+    currentSaved: "Currently saved",
+    targetDate: "Target date",
+    monthlyRequired: "Required per month",
+    monthsLeft: "Months left",
+    daysLeft: "Days left",
+    progress: "Progress",
+    goalsEmpty: "No goals yet. Set one to start tracking what you're saving toward.",
+    goalsHint: "SMART goals = Specific, Measurable, Achievable, Relevant, Time-bound. We calculate what you need to save each month to reach your target on time.",
+    achieved: "Achieved 🎉",
+    overdue: "Past target date",
+    saveGoal: "Save goal",
+    quickAdd: "Quick add",
+    customAmount: "Custom amount",
+    markComplete: "Mark complete",
+    reopen: "Reopen",
+    deleteGoal: "Delete goal",
+    confirmDeleteGoal: (name) => `Delete goal "${name}"? This cannot be undone.`,
+    active: "Active",
+    completed: "Completed",
+    requiredNote: "to reach your goal on time",
+    goalCreated: "Created",
+    addToSaved: "Add to saved",
+    pleaseFillRequired: "Please fill in name, target amount, and target date.",
+    targetMustBeFuture: "Target date should be in the future.",
     // Default category labels (only used if user hasn't customized)
     defaultCats: {
       food: "Food", house: "House Exp.", utilities: "Utilities", transport: "Transport",
@@ -256,6 +298,48 @@ const STRINGS = {
     },
     spent_legend: "Потрачено",
     income_legend: "Доход",
+    // Breakdown
+    breakdown_tab: "Разбивка",
+    thisMonth: "Этот месяц",
+    last3Months: "Последние 3 месяца",
+    thisYear: "Этот год",
+    totalSpent_period: "Всего потрачено",
+    barChartTitle: "РАЗБИВКА ПО КАТЕГОРИЯМ",
+    noSpending: "В этом периоде расходов нет.",
+    of_total: "от общего",
+    // Goals
+    goals_tab: "Цели",
+    addGoal: "+ Новая цель",
+    editGoal: "Изменить цель",
+    goalName: "Название цели",
+    goalNamePh: "напр. Поездка в Стамбул с семьёй",
+    goalDescription: "Описание (необязательно)",
+    goalDescPh: "Почему это важно для вас",
+    targetAmount: "Целевая сумма",
+    currentSaved: "Накоплено сейчас",
+    targetDate: "Целевая дата",
+    monthlyRequired: "Нужно в месяц",
+    monthsLeft: "Месяцев осталось",
+    daysLeft: "Дней осталось",
+    progress: "Прогресс",
+    goalsEmpty: "Целей пока нет. Создайте одну, чтобы отслеживать, на что вы копите.",
+    goalsHint: "SMART-цели: Конкретные, Измеримые, Достижимые, Релевантные, Ограниченные по времени. Мы посчитаем, сколько нужно откладывать каждый месяц, чтобы достичь цели в срок.",
+    achieved: "Достигнуто 🎉",
+    overdue: "Срок прошёл",
+    saveGoal: "Сохранить цель",
+    quickAdd: "Быстрое пополнение",
+    customAmount: "Своя сумма",
+    markComplete: "Отметить как выполненную",
+    reopen: "Открыть снова",
+    deleteGoal: "Удалить цель",
+    confirmDeleteGoal: (name) => `Удалить цель «${name}»? Это действие нельзя отменить.`,
+    active: "Активные",
+    completed: "Выполненные",
+    requiredNote: "чтобы достичь цели в срок",
+    goalCreated: "Создана",
+    addToSaved: "Добавить к накоплениям",
+    pleaseFillRequired: "Заполните название, целевую сумму и дату.",
+    targetMustBeFuture: "Целевая дата должна быть в будущем.",
     defaultCats: {
       food: "Еда", house: "Дом", utilities: "Коммунал.", transport: "Транспорт",
       health: "Здоровье", hygiene: "Гигиена", mobile: "Связь", rent: "Аренда",
@@ -328,6 +412,20 @@ const saveMonthData = (y, m, data) => {
   try { localStorage.setItem(monthKey(y, m), JSON.stringify(data)); } catch {}
 };
 
+// ─────────────────────────  GOALS STORAGE  ─────────────────────────
+const GOALS_KEY = "xpns_goals_v1";
+
+const loadGoals = () => {
+  try {
+    const raw = localStorage.getItem(GOALS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+};
+
+const saveGoalsToStorage = (goals) => {
+  try { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); } catch {}
+};
+
 // ─────────────────────────  CSV EXPORT  ─────────────────────────
 const csvCell = (v) => {
   if (v == null || v === "") return "";
@@ -363,6 +461,8 @@ export default function App() {
   const [mobileDay, setMobileDay] = useState(now.getDate());
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
   const [trendRange, setTrendRange] = useState("12");
+  const [breakdownRange, setBreakdownRange] = useState("month");
+  const [goals, setGoals] = useState(loadGoals);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -505,6 +605,18 @@ export default function App() {
     const arr = [...INCS];
     [arr[i], arr[j]] = [arr[j], arr[i]];
     updateConfig({ ...config, incomeSources: arr });
+  };
+
+  // ── Goals management ──
+  const persistGoals = (next) => { setGoals(next); saveGoalsToStorage(next); };
+
+  const addGoal = (g) => persistGoals([...goals, { ...g, id: newId(), createdAt: new Date().toISOString(), completed: false }]);
+  const updateGoal = (id, patch) => persistGoals(goals.map(g => g.id === id ? { ...g, ...patch } : g));
+  const deleteGoalById = (id) => {
+    const g = goals.find(g => g.id === id);
+    if (!g) return;
+    if (!window.confirm(t.confirmDeleteGoal(g.name))) return;
+    persistGoals(goals.filter(g => g.id !== id));
   };
 
   // ── CSV exports ──
@@ -654,7 +766,7 @@ export default function App() {
 
       {/* ══════ VIEW TABS ══════ */}
       <div style={{ background: T.BG, borderBottom: `1px solid ${T.BORDER2}`, padding: "0 20px", display: "flex", gap: 0, overflowX: "auto" }}>
-        {[["log", t.dailyLog], ["summary", t.summary], ["trends", t.trends], ["budget", t.budgetIncome], ["settings", t.settings]].map(([v, label]) => (
+        {[["log", t.dailyLog], ["summary", t.summary], ["breakdown", t.breakdown_tab], ["trends", t.trends], ["goals", t.goals_tab], ["budget", t.budgetIncome], ["settings", t.settings]].map(([v, label]) => (
           <button key={v} onClick={() => setView(v)} style={{
             padding: "10px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
             background: "transparent", color: view === v ? T.GREEN : T.MUTED, border: "none",
@@ -864,6 +976,27 @@ export default function App() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ══════ BREAKDOWN ══════ */}
+      {view === "breakdown" && (
+        <BreakdownView
+          T={T} t={t} CATS={CATS} CUR={CUR}
+          allMonthsData={allMonthsData}
+          breakdownRange={breakdownRange} setBreakdownRange={setBreakdownRange}
+          isMobile={isMobile} fmtT={fmtT} fmtC={fmtC}
+          year={year} month={month}
+        />
+      )}
+
+      {/* ══════ GOALS ══════ */}
+      {view === "goals" && (
+        <GoalsView
+          T={T} t={t} CUR={CUR}
+          goals={goals}
+          addGoal={addGoal} updateGoal={updateGoal} deleteGoalById={deleteGoalById}
+          isMobile={isMobile} fmtT={fmtT} fmtC={fmtC}
+        />
       )}
 
       {/* ══════ TRENDS ══════ */}
@@ -1315,6 +1448,442 @@ function TrendsView({ T, t, CATS, CUR, allMonthsData, trendRange, setTrendRange,
         <div style={{ fontSize: 11, color: T.MUTED, marginTop: 10, textAlign: "center" }}>
           {isMobile ? "" : "Click legend items to toggle visibility"}
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────  BREAKDOWN VIEW  ─────────────────────────
+function BreakdownView({ T, t, CATS, CUR, allMonthsData, breakdownRange, setBreakdownRange, isMobile, fmtT, fmtC, year, month }) {
+  // Filter months based on range
+  const filtered = useMemo(() => {
+    const now = new Date();
+    const curY = now.getFullYear();
+    const curM = now.getMonth();
+
+    if (breakdownRange === "month") {
+      return allMonthsData.filter(e => e.year === year && e.month === month);
+    }
+    if (breakdownRange === "3months") {
+      // Last 3 months including current
+      const cutoff = new Date(curY, curM - 2, 1);
+      return allMonthsData.filter(e => new Date(e.year, e.month, 1) >= cutoff);
+    }
+    if (breakdownRange === "year") {
+      return allMonthsData.filter(e => e.year === curY);
+    }
+    return allMonthsData; // all time
+  }, [allMonthsData, breakdownRange, year, month]);
+
+  // Aggregate totals per category
+  const aggregated = useMemo(() => {
+    const sums = {};
+    filtered.forEach(e => {
+      Object.entries(e.catSums || {}).forEach(([catId, amt]) => {
+        sums[catId] = (sums[catId] || 0) + amt;
+      });
+    });
+    const total = Object.values(sums).reduce((s, v) => s + v, 0);
+    const rows = CATS
+      .map(c => ({ ...c, amount: sums[c.id] || 0, pct: total > 0 ? ((sums[c.id] || 0) / total) * 100 : 0 }))
+      .filter(r => r.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
+    return { rows, total };
+  }, [filtered, CATS]);
+
+  const rangeOptions = [
+    { value: "month", label: t.thisMonth },
+    { value: "3months", label: t.last3Months },
+    { value: "year", label: t.thisYear },
+    { value: "all", label: t.allTime },
+  ];
+
+  const chartData = aggregated.rows.map(r => ({
+    name: r.label,
+    amount: Math.round(r.amount * 100) / 100,
+    color: r.color,
+    pct: r.pct,
+  }));
+
+  const BarTooltip = ({ active, payload }) => {
+    if (!active || !payload || !payload.length) return null;
+    const d = payload[0].payload;
+    return (
+      <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 6, padding: "8px 12px", fontFamily: "inherit", fontSize: 12 }}>
+        <div style={{ color: d.color, fontWeight: 600, marginBottom: 4 }}>{d.name}</div>
+        <div style={{ color: T.TEXT, fontWeight: 600 }}>{fmtC(d.amount)}</div>
+        <div style={{ color: T.MUTED, fontSize: 11 }}>{d.pct.toFixed(1)}% {t.of_total}</div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ padding: isMobile ? 12 : 20, maxWidth: 1000 }}>
+      {/* Range selector */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        {rangeOptions.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setBreakdownRange(opt.value)}
+            style={{
+              padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+              background: breakdownRange === opt.value ? T.GREEN : "transparent",
+              color: breakdownRange === opt.value ? "#000" : T.MUTED,
+              border: `1px solid ${breakdownRange === opt.value ? T.GREEN : T.BORDER}`,
+              borderRadius: 6, fontWeight: breakdownRange === opt.value ? 600 : 400, outline: "none",
+            }}
+          >{opt.label}</button>
+        ))}
+      </div>
+
+      {/* Total */}
+      <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: "14px 20px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1, fontWeight: 700 }}>{t.totalSpent_period.toUpperCase()}</span>
+        <span style={{ fontSize: 22, fontWeight: 700, color: aggregated.total > 0 ? T.RED : T.MUTED }}>{fmtC(aggregated.total)}</span>
+      </div>
+
+      {/* Bar chart */}
+      <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: isMobile ? 12 : 20, marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: T.MUTED, letterSpacing: 1, marginBottom: 16, fontWeight: 700 }}>{t.barChartTitle}</div>
+        {chartData.length === 0 ? (
+          <div style={{ color: T.MUTED, fontSize: 13, padding: "30px 0", textAlign: "center" }}>{t.noSpending}</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={isMobile ? 260 : 340}>
+            <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={T.BORDER2} vertical={false} />
+              <XAxis dataKey="name" stroke={T.MUTED} tick={{ fontSize: 10, fill: T.MUTED }} angle={-35} textAnchor="end" interval={0} height={60} />
+              <YAxis stroke={T.MUTED} tick={{ fontSize: 11, fill: T.MUTED }} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+              <Tooltip content={<BarTooltip />} cursor={{ fill: T.BORDER2, opacity: 0.3 }} />
+              <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                {chartData.map((entry, i) => (<Cell key={i} fill={entry.color} />))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Category list */}
+      {aggregated.rows.length > 0 && (
+        <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, overflow: "hidden" }}>
+          {aggregated.rows.map((r, i) => (
+            <div key={r.id} style={{
+              display: "flex", alignItems: "center", padding: "14px 16px", gap: 12,
+              borderBottom: i < aggregated.rows.length - 1 ? `1px solid ${T.BORDER2}` : "none",
+            }}>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: r.color, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: T.TEXT, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</div>
+                <div style={{ background: T.BORDER2, borderRadius: 2, height: 3, marginTop: 6, overflow: "hidden" }}>
+                  <div style={{ background: r.color, height: "100%", width: `${r.pct}%`, borderRadius: 2 }} />
+                </div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.TEXT }}>{fmtC(r.amount)}</div>
+                <div style={{ fontSize: 11, color: T.MUTED }}>{r.pct.toFixed(1)}%</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────  GOALS VIEW  ─────────────────────────
+function GoalsView({ T, t, CUR, goals, addGoal, updateGoal, deleteGoalById, isMobile, fmtT, fmtC }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ name: "", description: "", targetAmount: "", savedAmount: "0", targetDate: "" });
+  const [filter, setFilter] = useState("active");
+
+  const resetForm = () => {
+    setForm({ name: "", description: "", targetAmount: "", savedAmount: "0", targetDate: "" });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const handleSave = () => {
+    if (!form.name.trim() || !form.targetAmount || !form.targetDate) {
+      window.alert(t.pleaseFillRequired);
+      return;
+    }
+    const target = parseFloat(form.targetAmount);
+    const saved = parseFloat(form.savedAmount) || 0;
+    if (isNaN(target) || target <= 0) {
+      window.alert(t.pleaseFillRequired);
+      return;
+    }
+    const targetDate = new Date(form.targetDate);
+    if (!editingId && targetDate <= new Date()) {
+      if (!window.confirm(t.targetMustBeFuture + " Continue anyway?")) return;
+    }
+    const payload = {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      targetAmount: target,
+      savedAmount: saved,
+      targetDate: form.targetDate,
+    };
+    if (editingId) updateGoal(editingId, payload);
+    else addGoal(payload);
+    resetForm();
+  };
+
+  const startEdit = (g) => {
+    setEditingId(g.id);
+    setForm({
+      name: g.name,
+      description: g.description || "",
+      targetAmount: g.targetAmount.toString(),
+      savedAmount: g.savedAmount.toString(),
+      targetDate: g.targetDate,
+    });
+    setShowForm(true);
+  };
+
+  const visibleGoals = goals.filter(g => filter === "active" ? !g.completed : g.completed);
+
+  const inputStyle = {
+    width: "100%", background: T.BG, border: `1px solid ${T.BORDER}`, borderRadius: 6,
+    color: T.TEXT, padding: "8px 12px", fontSize: 14, fontFamily: "inherit",
+    boxSizing: "border-box", outline: "none",
+  };
+  const labelStyle = { fontSize: 11, color: T.MUTED, letterSpacing: 0.5, marginBottom: 5, display: "block" };
+
+  return (
+    <div style={{ padding: isMobile ? 12 : 20, maxWidth: 900 }}>
+      {/* Header + filter */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6 }}>
+          {[["active", t.active], ["completed", t.completed]].map(([v, label]) => (
+            <button
+              key={v}
+              onClick={() => setFilter(v)}
+              style={{
+                padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+                background: filter === v ? T.GREEN : "transparent",
+                color: filter === v ? "#000" : T.MUTED,
+                border: `1px solid ${filter === v ? T.GREEN : T.BORDER}`,
+                borderRadius: 6, fontWeight: filter === v ? 600 : 400, outline: "none",
+              }}
+            >{label}</button>
+          ))}
+        </div>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            style={{
+              padding: "8px 14px", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+              background: T.GREEN, color: "#000", border: "none",
+              borderRadius: 6, fontWeight: 600, outline: "none",
+            }}
+          >{t.addGoal}</button>
+        )}
+      </div>
+
+      {/* SMART hint when no goals */}
+      {goals.length === 0 && !showForm && (
+        <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 24, marginBottom: 16 }}>
+          <div style={{ color: T.TEXT, fontSize: 15, fontWeight: 600, marginBottom: 8 }}>{t.goalsEmpty}</div>
+          <div style={{ color: T.MUTED, fontSize: 13, lineHeight: 1.6 }}>{t.goalsHint}</div>
+        </div>
+      )}
+
+      {/* Form */}
+      {showForm && (
+        <div style={{ background: T.SURF, border: `1px solid ${T.GREEN}`, borderRadius: 8, padding: 20, marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: T.GREEN, fontWeight: 700, letterSpacing: 1, marginBottom: 16 }}>
+            {editingId ? t.editGoal.toUpperCase() : t.addGoal.replace("+", "").trim().toUpperCase()}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
+            <div style={{ gridColumn: isMobile ? "auto" : "span 2" }}>
+              <label style={labelStyle}>{t.goalName} *</label>
+              <input style={inputStyle} value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder={t.goalNamePh} />
+            </div>
+            <div style={{ gridColumn: isMobile ? "auto" : "span 2" }}>
+              <label style={labelStyle}>{t.goalDescription}</label>
+              <input style={inputStyle} value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder={t.goalDescPh} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t.targetAmount} ({CUR.symbol}) *</label>
+              <input style={inputStyle} type="number" value={form.targetAmount} onChange={e => setForm({...form, targetAmount: e.target.value})} placeholder="10000" />
+            </div>
+            <div>
+              <label style={labelStyle}>{t.currentSaved} ({CUR.symbol})</label>
+              <input style={inputStyle} type="number" value={form.savedAmount} onChange={e => setForm({...form, savedAmount: e.target.value})} placeholder="0" />
+            </div>
+            <div>
+              <label style={labelStyle}>{t.targetDate} *</label>
+              <input style={inputStyle} type="date" value={form.targetDate} onChange={e => setForm({...form, targetDate: e.target.value})} />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+            <button
+              onClick={handleSave}
+              style={{ padding: "10px 18px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", background: T.GREEN, color: "#000", border: "none", borderRadius: 6, fontWeight: 600, outline: "none" }}
+            >{t.saveGoal}</button>
+            <button
+              onClick={resetForm}
+              style={{ padding: "10px 18px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", background: "transparent", color: T.MUTED, border: `1px solid ${T.BORDER}`, borderRadius: 6, outline: "none" }}
+            >{t.cancel}</button>
+          </div>
+        </div>
+      )}
+
+      {/* Goals list */}
+      {visibleGoals.length === 0 && goals.length > 0 && (
+        <div style={{ color: T.MUTED, fontSize: 13, padding: "30px 0", textAlign: "center" }}>—</div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {visibleGoals.map(g => (
+          <GoalCard
+            key={g.id}
+            goal={g}
+            T={T} t={t} CUR={CUR} isMobile={isMobile} fmtT={fmtT} fmtC={fmtC}
+            onEdit={() => startEdit(g)}
+            onDelete={() => deleteGoalById(g.id)}
+            onToggleComplete={() => updateGoal(g.id, { completed: !g.completed })}
+            onAddSaved={(amt) => updateGoal(g.id, { savedAmount: Math.max(0, g.savedAmount + amt) })}
+            onSetSaved={(amt) => updateGoal(g.id, { savedAmount: Math.max(0, amt) })}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GoalCard({ goal, T, t, CUR, isMobile, fmtT, fmtC, onEdit, onDelete, onToggleComplete, onAddSaved, onSetSaved }) {
+  const [quickAddVal, setQuickAddVal] = useState("");
+  const [editingSaved, setEditingSaved] = useState(false);
+  const [savedInput, setSavedInput] = useState(goal.savedAmount.toString());
+
+  const now = new Date();
+  const target = new Date(goal.targetDate);
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const daysLeft = Math.ceil((target - now) / msPerDay);
+  const monthsLeft = daysLeft / 30.44;
+  const progress = goal.targetAmount > 0 ? (goal.savedAmount / goal.targetAmount) * 100 : 0;
+  const remaining = Math.max(0, goal.targetAmount - goal.savedAmount);
+  const monthlyRequired = monthsLeft > 0 && remaining > 0 ? remaining / monthsLeft : 0;
+
+  const isOverdue = !goal.completed && daysLeft < 0 && goal.savedAmount < goal.targetAmount;
+  const isAchieved = goal.savedAmount >= goal.targetAmount;
+
+  let statusColor = T.GREEN;
+  let statusLabel = null;
+  if (goal.completed || isAchieved) {
+    statusColor = T.GREEN;
+    statusLabel = t.achieved;
+  } else if (isOverdue) {
+    statusColor = T.RED;
+    statusLabel = t.overdue;
+  }
+
+  const handleQuickAdd = () => {
+    const v = parseFloat(quickAddVal);
+    if (!isNaN(v) && v !== 0) {
+      onAddSaved(v);
+      setQuickAddVal("");
+    }
+  };
+
+  const handleSetSaved = () => {
+    const v = parseFloat(savedInput);
+    if (!isNaN(v)) onSetSaved(v);
+    setEditingSaved(false);
+  };
+
+  return (
+    <div style={{ background: T.SURF, border: `1px solid ${isAchieved || goal.completed ? T.GREEN : isOverdue ? T.RED : T.BORDER}`, borderRadius: 8, padding: 18 }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: T.TEXT, overflow: "hidden", textOverflow: "ellipsis" }}>{goal.name}</div>
+          {goal.description && <div style={{ fontSize: 12, color: T.MUTED, marginTop: 2 }}>{goal.description}</div>}
+        </div>
+        {statusLabel && (
+          <span style={{ fontSize: 11, color: statusColor, fontWeight: 700, padding: "3px 8px", border: `1px solid ${statusColor}`, borderRadius: 4, whiteSpace: "nowrap" }}>
+            {statusLabel}
+          </span>
+        )}
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ marginTop: 12, marginBottom: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12 }}>
+          <span style={{ color: T.MUTED }}>{t.progress}</span>
+          <span style={{ color: T.TEXT, fontWeight: 600 }}>{Math.min(progress, 100).toFixed(1)}%</span>
+        </div>
+        <div style={{ background: T.BORDER2, borderRadius: 4, height: 8, overflow: "hidden" }}>
+          <div style={{ background: isAchieved ? T.GREEN : isOverdue ? T.RED : T.GREEN, height: "100%", width: `${Math.min(progress, 100)}%`, borderRadius: 4, transition: "width 0.4s ease" }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 11, color: T.MUTED }}>
+          <span>{fmtC(goal.savedAmount)}</span>
+          <span>{fmtC(goal.targetAmount)}</span>
+        </div>
+      </div>
+
+      {/* SMART stats */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: 10, padding: "10px 0", borderTop: `1px solid ${T.BORDER2}`, borderBottom: `1px solid ${T.BORDER2}`, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 0.5 }}>
+            {daysLeft >= 0 ? (monthsLeft >= 1 ? t.monthsLeft.toUpperCase() : t.daysLeft.toUpperCase()) : t.daysLeft.toUpperCase()}
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: daysLeft < 0 ? T.RED : T.TEXT, marginTop: 2 }}>
+            {daysLeft >= 0 ? (monthsLeft >= 1 ? Math.ceil(monthsLeft) : daysLeft) : daysLeft}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 0.5 }}>{t.monthlyRequired.toUpperCase()}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: isAchieved ? T.GREEN : T.TEXT, marginTop: 2 }}>
+            {isAchieved ? "—" : monthlyRequired > 0 ? fmtC(monthlyRequired) : "—"}
+          </div>
+        </div>
+        <div style={{ gridColumn: isMobile ? "span 2" : "auto" }}>
+          <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 0.5 }}>{t.targetDate.toUpperCase()}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.TEXT, marginTop: 2 }}>
+            {new Date(goal.targetDate).toLocaleDateString(t.locale, { year: "numeric", month: "short", day: "numeric" })}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick-add saved amount */}
+      {!goal.completed && !isAchieved && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: T.MUTED, letterSpacing: 0.5, marginBottom: 6 }}>{t.addToSaved.toUpperCase()}</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <input
+              type="number"
+              value={quickAddVal}
+              onChange={e => setQuickAddVal(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleQuickAdd(); }}
+              placeholder={CUR.symbol}
+              style={{
+                flex: 1, minWidth: 120, background: T.BG, border: `1px solid ${T.BORDER}`, borderRadius: 6,
+                color: T.TEXT, padding: "8px 12px", fontSize: 14, fontFamily: "inherit", outline: "none",
+              }}
+            />
+            <button
+              onClick={handleQuickAdd}
+              disabled={!quickAddVal}
+              style={{ padding: "8px 14px", fontSize: 13, cursor: quickAddVal ? "pointer" : "not-allowed", fontFamily: "inherit", background: T.GREEN, color: "#000", border: "none", borderRadius: 6, fontWeight: 600, outline: "none", opacity: quickAddVal ? 1 : 0.5 }}
+            >+</button>
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button onClick={onEdit} style={{ flex: 1, minWidth: 0, padding: "8px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: "transparent", color: T.TEXT, border: `1px solid ${T.BORDER}`, borderRadius: 6, outline: "none" }}>
+          {t.editGoal}
+        </button>
+        <button onClick={onToggleComplete} style={{ flex: 1, minWidth: 0, padding: "8px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: "transparent", color: goal.completed ? T.MUTED : T.GREEN, border: `1px solid ${goal.completed ? T.BORDER : T.GREEN}`, borderRadius: 6, outline: "none" }}>
+          {goal.completed ? t.reopen : t.markComplete}
+        </button>
+        <button onClick={onDelete} style={{ padding: "8px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: "transparent", color: T.RED, border: `1px solid ${T.BORDER}`, borderRadius: 6, outline: "none" }}>
+          ✕
+        </button>
       </div>
     </div>
   );
