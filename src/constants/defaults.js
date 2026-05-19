@@ -32,6 +32,7 @@ export const CURRENCIES = [
   { code: "UZS", symbol: "soʻm", locale: "uz-Latn-UZ" },
   { code: "KZT", symbol: "₸",    locale: "kk-KZ" },
   { code: "KGS", symbol: "сом",  locale: "ky-KG" },
+  { code: "HKD", symbol: "HK$",  locale: "en-HK" },
   { code: "EUR", symbol: "€",    locale: "de-DE" },
   { code: "GBP", symbol: "£",    locale: "en-GB" },
   { code: "JPY", symbol: "¥",    locale: "ja-JP" },
