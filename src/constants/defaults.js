@@ -28,13 +28,16 @@ export const DEFAULT_INCOME = [
 
 export const CURRENCIES = [
   { code: "USD", symbol: "$",    locale: "en-US" },
+  { code: "TJS", symbol: "сом.", locale: "tg-Cyrl-TJ" },
+  { code: "UZS", symbol: "soʻm", locale: "uz-Latn-UZ" },
+  { code: "KZT", symbol: "₸",    locale: "kk-KZ" },
+  { code: "KGS", symbol: "сом",  locale: "ky-KG" },
   { code: "EUR", symbol: "€",    locale: "de-DE" },
   { code: "GBP", symbol: "£",    locale: "en-GB" },
   { code: "JPY", symbol: "¥",    locale: "ja-JP" },
   { code: "CNY", symbol: "¥",    locale: "zh-CN" },
   { code: "INR", symbol: "₹",    locale: "en-IN" },
   { code: "RUB", symbol: "₽",    locale: "ru-RU" },
-  { code: "UZS", symbol: "soʻm", locale: "uz-Latn-UZ" },
   { code: "TRY", symbol: "₺",    locale: "tr-TR" },
   { code: "BRL", symbol: "R$",   locale: "pt-BR" },
   { code: "CAD", symbol: "C$",   locale: "en-CA" },
