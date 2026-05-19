@@ -8,6 +8,8 @@ import Breakdown from "./components/tabs/Breakdown.jsx";
 import Goals from "./components/tabs/Goals.jsx";
 import BudgetIncome from "./components/tabs/BudgetIncome.jsx";
 import Settings from "./components/tabs/Settings.jsx";
+import Logo from "./components/ui/Logo.jsx";
+
 
 export default function App() {
   const now = new Date();
@@ -69,9 +71,10 @@ export default function App() {
         <div style={{ padding: "16px 20px 0" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, gap: 12, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 19, fontWeight: 700, color: T.TEXT, letterSpacing: -0.5 }}>
-                <span style={{ color: T.GREEN }}>{CUR.symbol}</span> {t.appName}
-              </div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: T.TEXT, letterSpacing: -0.5, display: "flex", alignItems: "center", gap: 8 }}>
+                  <Logo size={22} color={T.GREEN} />
+                  {t.appName}
+                </div>
               <div style={{ fontSize: 12, color: T.MUTED, marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
                 <button onClick={() => setYear(year - 1)} style={{ ...smallBtn, height: 22, padding: "0 6px" }} title={t.prevYear}>‹</button>
                 <span style={{ minWidth: 130, display: "inline-block", textAlign: "center" }}>{t.months[month]} {year}</span>
