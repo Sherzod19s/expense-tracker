@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#0d1117"/>
+  <!-- Bar 1: short -->
+  <rect x="112" y="288" width="64" height="144" rx="14" fill="#3fb950"/>
+  <!-- Bar 2: medium -->
+  <rect x="224" y="192" width="64" height="240" rx="14" fill="#3fb950"/>
+  <!-- Bar 3: tall outline (the "in progress" bar) -->
+  <rect x="336" y="96" width="64" height="336" rx="14" fill="none" stroke="#3fb950" stroke-width="20"/>
+  <!-- Bar 3: partial fill from bottom (~55%) -->
+  <rect x="336" y="248" width="64" height="184" rx="14" fill="#3fb950"/>
+</svg>
