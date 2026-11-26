@@ -1,6 +1,6 @@
 ## 💸 Expense Tracker
 
-A clean, keyboard-friendly monthly expense tracker built with React + Vite. No accounts, no servers, no tracking — your data stays in your browser.
+A clean, keyboard-friendly monthly expense tracker built with React + Vite. No account required; your expense data stays in your browser unless you choose to use the optional AI assistant.
 
 🔗 **[Try it live →](https://expense-tracker-tisw.vercel.app)**
 
@@ -18,7 +18,7 @@ A clean, keyboard-friendly monthly expense tracker built with React + Vite. No a
 - **17 currencies supported** — USD, EUR, GBP, JPY, RUB, UZS, INR, CNY, TRY, BRL, and more.
 - **Light & dark themes** — toggle in the header.
 - **CSV export** — download your data anytime to keep an Excel backup. Two formats: per-month and full history.
-- **100% local** — built with `localStorage`. No signup, no cloud, no analytics.
+- **Local-first data** — expense records stay in your browser. Optional AI chat sends a compact financial summary to OpenRouter only when you ask a question.
 
 ---
 
@@ -33,11 +33,17 @@ A clean, keyboard-friendly monthly expense tracker built with React + Vite. No a
 
 ---
 
+## AI assistant
+
+Open the floating chat button and add your own [OpenRouter API key](https://openrouter.ai/keys). Choose an OpenRouter model (the default is `openai/gpt-4o-mini`), then ask questions about spending, budgets, recent monthly totals, and savings goals. You can also configure the key and model in Settings → AI Assistant.
+
+The assistant is read-only. The app computes a compact summary locally before sending it along with your question to OpenRouter and the selected model; raw day-by-day entries are not sent. Chat history and the API key are stored in this browser's `localStorage`, separately from expense exports. OpenRouter/model providers may process requests under their own privacy and billing terms. Do not send sensitive information.
+
 ## Privacy
 
-Your data never leaves your browser. There's no account system, no database, nothing sent to a server. Open DevTools → Application → Local Storage and you'll see it all sitting there in plain JSON. Clear your browser data and it's gone forever (so download CSV backups if it matters to you).
+Expense data is stored in this browser using `localStorage`. Without using the optional AI assistant, your expense data stays in your browser. If you ask the assistant a question, a summary of the selected month, recent monthly totals, and goals is sent to OpenRouter and your selected model. There is no app account or app-hosted database. Clear your browser data and local records are erased (so download CSV backups if it matters to you).
 
-Each visitor has their own isolated data — sharing the link doesn't share your numbers.
+Each visitor has their own isolated data — sharing the link doesn't share your numbers. The OpenRouter key is never included in CSV exports.
 
 ---
 

@@ -1,14 +1,32 @@
+import { useState } from "react";
 import { CURRENCIES } from "../../constants/defaults.js";
 import { listMonthKeys, readJSON, toCSV, downloadCSV } from "../../hooks/useStorage.js";
 
 export default function Settings({
   T, t, config, update, CATS, INCS, CUR,
-  fmtT,
   addCategory, updateCategory, moveCategory, removeCategory,
   addIncomeSource, updateIncomeSource, moveIncomeSource, removeIncomeSource,
   year, month, monthData,
-  isMobile,
+  isMobile, ai, updateAI, clearChat,
 }) {
+  const [showAIKey, setShowAIKey] = useState(false);
+  const [keyTestStatus, setKeyTestStatus] = useState("");
+  const [testingKey, setTestingKey] = useState(false);
+  const testAIKey = async () => {
+    setTestingKey(true);
+    setKeyTestStatus("");
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/auth/key", {
+        headers: { Authorization: `Bearer ${ai.apiKey.trim()}` },
+      });
+      if (!response.ok) throw new Error(response.status === 401 ? t.aiInvalidKey : t.aiTestFailed);
+      setKeyTestStatus(t.aiKeyValid);
+    } catch (error) {
+      setKeyTestStatus(error.message || t.aiTestFailed);
+    } finally {
+      setTestingKey(false);
+    }
+  };
   const inputStyle = {
     width: "100%", background: T.BG, border: `1px solid ${T.BORDER}`, borderRadius: 6,
     color: T.TEXT, padding: "8px 12px", fontSize: 14, fontFamily: "inherit",
@@ -158,6 +176,33 @@ export default function Settings({
             </select>
           </div>
         </div>
+      </div>
+
+      {/* AI assistant */}
+      <div style={{ background: T.SURF, border: `1px solid ${T.BORDER}`, borderRadius: 8, padding: 20, marginBottom: 20 }}>
+        <div style={{ fontSize: 11, color: T.MUTED, fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>{t.aiAssistant}</div>
+        <div style={{ fontSize: 11, color: T.MUTED, lineHeight: 1.6, marginBottom: 16 }}>{t.aiPrivacy}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+          <div>
+            <label htmlFor="openrouter-key" style={{ display: "block", fontSize: 11, color: T.MUTED, marginBottom: 5 }}>{t.aiApiKey}</label>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input id="openrouter-key" type={showAIKey ? "text" : "password"} autoComplete="off" value={ai.apiKey} onChange={event => updateAI({ apiKey: event.target.value })} placeholder="sk-or-v1-…" style={inputStyle} />
+              <button type="button" onClick={() => setShowAIKey(value => !value)} style={smallBtn}>{showAIKey ? t.hide : t.show}</button>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="openrouter-model" style={{ display: "block", fontSize: 11, color: T.MUTED, marginBottom: 5 }}>{t.aiModel}</label>
+            <input id="openrouter-model" list="settings-model-presets" value={ai.model} onChange={event => updateAI({ model: event.target.value })} style={inputStyle} />
+            <datalist id="settings-model-presets"><option value="openai/gpt-4o-mini" /><option value="google/gemini-2.0-flash-001" /><option value="meta-llama/llama-3.3-70b-instruct:free" /></datalist>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
+          <button type="button" disabled={!ai.apiKey || testingKey} onClick={testAIKey} style={{ ...smallBtn, padding: "7px 10px", height: "auto", color: T.GREEN, borderColor: T.GREEN, opacity: !ai.apiKey || testingKey ? 0.55 : 1 }}>{testingKey ? t.aiTesting : t.aiTestKey}</button>
+          {keyTestStatus && <span role="status" style={{ fontSize: 11, color: keyTestStatus === t.aiKeyValid ? T.GREEN : T.RED }}>{keyTestStatus}</span>}
+          <button type="button" onClick={clearChat} style={{ ...smallBtn, padding: "7px 10px", height: "auto" }}>{t.aiClearChat}</button>
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" style={{ fontSize: 11, color: T.GREEN }}>{t.aiGetKey}</a>
+        </div>
+        <div style={{ fontSize: 10, color: T.MUTED, lineHeight: 1.6, marginTop: 12 }}>{t.aiPrivacyDetail}</div>
       </div>
 
       {/* Categories */}

@@ -9,6 +9,9 @@ import Goals from "./components/tabs/Goals.jsx";
 import BudgetIncome from "./components/tabs/BudgetIncome.jsx";
 import Settings from "./components/tabs/Settings.jsx";
 import Logo from "./components/ui/Logo.jsx";
+import ChatWidget from "./components/ui/ChatWidget.jsx";
+import { useAISettings } from "./hooks/useAISettings.js";
+import { useChat } from "./hooks/useChat.js";
 
 
 export default function App() {
@@ -31,6 +34,8 @@ export default function App() {
 
   const { data: monthData, setDay, setBudget, setIncome } = useMonthData(year, month);
   const { goals, addGoal, updateGoal, deleteGoal } = useGoals();
+  const { ai, updateAI } = useAISettings();
+  const chat = useChat();
 
   // Track viewport changes
   useEffect(() => {
@@ -171,15 +176,20 @@ export default function App() {
         <Settings
           T={T} t={t} config={config} update={update}
           CATS={CATS} INCS={INCS} CUR={CUR}
-          fmtT={fmtT}
           addCategory={addCategory} updateCategory={updateCategory}
           moveCategory={moveCategory} removeCategory={removeCategory}
           addIncomeSource={addIncomeSource} updateIncomeSource={updateIncomeSource}
           moveIncomeSource={moveIncomeSource} removeIncomeSource={removeIncomeSource}
           year={year} month={month} monthData={monthData}
           isMobile={isMobile}
+          ai={ai} updateAI={updateAI} clearChat={chat.clear}
         />
       )}
+
+      <ChatWidget
+        T={T} config={config} goals={goals} year={year} month={month}
+        monthData={monthData} ai={ai} updateAI={updateAI} isMobile={isMobile} chat={chat}
+      />
     </div>
   );
 }
