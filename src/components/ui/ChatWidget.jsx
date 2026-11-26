@@ -6,6 +6,37 @@ const SUGGESTIONS = {
   ru: ["На что я потратил больше всего в этом месяце?", "Я превысил бюджет?", "Сравни этот месяц с прошлым", "Как продвигаются мои цели накопления?"],
 };
 
+const CHAT_POSITION_KEY = "xpns_chat_position_v1";
+const CHAT_BUTTON_SIZE = 54;
+const CHAT_EDGE_GAP = 12;
+
+function readChatPosition() {
+  const fallback = {
+    x: typeof window === "undefined" ? 16 : Math.max(CHAT_EDGE_GAP, window.innerWidth - CHAT_BUTTON_SIZE - 16),
+    y: typeof window === "undefined" ? 16 : Math.max(CHAT_EDGE_GAP, window.innerHeight - CHAT_BUTTON_SIZE - 16),
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem(CHAT_POSITION_KEY) || "null");
+    if (Number.isFinite(saved?.x) && Number.isFinite(saved?.y)) {
+      return {
+        x: Math.max(CHAT_EDGE_GAP, Math.min(saved.x, window.innerWidth - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP)),
+        y: Math.max(CHAT_EDGE_GAP, Math.min(saved.y, window.innerHeight - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP)),
+      };
+    }
+  } catch {
+    // Use the default corner if browser storage is unavailable.
+  }
+  return fallback;
+}
+
+function saveChatPosition(position) {
+  try {
+    localStorage.setItem(CHAT_POSITION_KEY, JSON.stringify(position));
+  } catch {
+    // The widget still moves for this session if browser storage is unavailable.
+  }
+}
+
 function formatInline(text) {
   return text.split(/(\*\*.*?\*\*)/g).map((part, index) => (
     part.startsWith("**") && part.endsWith("**")
@@ -31,8 +62,11 @@ export default function ChatWidget({ T, config, goals, year, month, monthData, a
   const [draft, setDraft] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [setupReady, setSetupReady] = useState(false);
+  const [chatPosition, setChatPosition] = useState(readChatPosition);
   const { messages, isLoading, error, sendMessage, stop, clear } = chat;
   const listRef = useRef(null);
+  const dragRef = useRef(null);
+  const draggedRef = useRef(false);
   const inputRef = useRef(null);
   const setupKeyRef = useRef(null);
   const setupModelRef = useRef(null);
@@ -51,6 +85,66 @@ export default function ChatWidget({ T, config, goals, year, month, monthData, a
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isOpen]);
+  useEffect(() => {
+    const onResize = () => {
+      setChatPosition(previous => {
+        const next = {
+          x: Math.max(CHAT_EDGE_GAP, Math.min(previous.x, window.innerWidth - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP)),
+          y: Math.max(CHAT_EDGE_GAP, Math.min(previous.y, window.innerHeight - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP)),
+        };
+        saveChatPosition(next);
+        return next;
+      });
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const handlePointerDown = event => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+      startX: chatPosition.x,
+      startY: chatPosition.y,
+      position: chatPosition,
+    };
+    draggedRef.current = false;
+  };
+
+  const handlePointerMove = event => {
+    if (!dragRef.current) return;
+    const drag = dragRef.current;
+    const deltaX = event.clientX - drag.pointerX;
+    const deltaY = event.clientY - drag.pointerY;
+    if (!draggedRef.current && Math.hypot(deltaX, deltaY) < 6) return;
+    draggedRef.current = true;
+    drag.position = {
+      x: Math.max(CHAT_EDGE_GAP, Math.min(drag.startX + deltaX, window.innerWidth - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP)),
+      y: Math.max(CHAT_EDGE_GAP, Math.min(drag.startY + deltaY, window.innerHeight - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP)),
+    };
+    setChatPosition(drag.position);
+  };
+
+  const handlePointerUp = () => {
+    if (!dragRef.current) return;
+    const position = dragRef.current.position;
+    dragRef.current = null;
+    if (!draggedRef.current) return;
+    const maxX = Math.max(CHAT_EDGE_GAP, window.innerWidth - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP);
+    const snapped = {
+      x: position.x + CHAT_BUTTON_SIZE / 2 < window.innerWidth / 2 ? CHAT_EDGE_GAP : maxX,
+      y: position.y,
+    };
+    setChatPosition(snapped);
+    saveChatPosition(snapped);
+  };
+
+  const handlePointerCancel = () => {
+    dragRef.current = null;
+    draggedRef.current = false;
+  };
 
   const submit = async text => {
     const content = (text ?? draft).trim();
@@ -60,12 +154,23 @@ export default function ChatWidget({ T, config, goals, year, month, monthData, a
     await sendMessage(content, { ai, financialContext, language: config.lang });
   };
 
+  const viewportWidth = typeof window === "undefined" ? 390 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 844 : window.innerHeight;
+  const panelWidth = Math.min(isMobile ? 360 : 380, viewportWidth - CHAT_EDGE_GAP * 2);
+  const preferredPanelHeight = isMobile ? Math.min(520, viewportHeight * 0.68) : 560;
+  const roomAbove = chatPosition.y - CHAT_EDGE_GAP * 2;
+  const roomBelow = viewportHeight - chatPosition.y - CHAT_BUTTON_SIZE - CHAT_EDGE_GAP * 2;
+  const panelOpensAbove = roomAbove >= roomBelow;
+  const panelHeight = Math.max(180, Math.min(preferredPanelHeight, panelOpensAbove ? roomAbove : roomBelow));
+  const panelOnLeft = chatPosition.x + CHAT_BUTTON_SIZE / 2 < viewportWidth / 2;
   const panelStyle = {
     position: "fixed", zIndex: 1000,
-    ...(isMobile ? { inset: 8, width: "auto", height: "auto" } : { right: 24, bottom: 88, width: 380, height: 560, maxHeight: "calc(100dvh - 112px)" }),
+    ...(panelOnLeft ? { left: CHAT_EDGE_GAP } : { right: CHAT_EDGE_GAP }),
+    ...(panelOpensAbove ? { bottom: viewportHeight - chatPosition.y + 10 } : { top: chatPosition.y + CHAT_BUTTON_SIZE + 10 }),
+    width: panelWidth, height: panelHeight, maxHeight: "calc(100dvh - 24px)",
     display: "flex", flexDirection: "column", overflow: "hidden",
     background: T.SURF, color: T.TEXT, border: `1px solid ${T.BORDER}`,
-    borderRadius: isMobile ? 12 : 14, boxShadow: "0 18px 60px rgba(0,0,0,.35)",
+    borderRadius: 14, boxShadow: "0 18px 60px rgba(0,0,0,.35)",
     fontFamily: "'SF Mono', 'Cascadia Code', 'Fira Code', monospace",
   };
   const buttonStyle = {
@@ -142,7 +247,23 @@ export default function ChatWidget({ T, config, goals, year, month, monthData, a
           )}
         </section>
       )}
-      {!isOpen && <button type="button" onClick={() => setIsOpen(true)} aria-label={config.lang === "ru" ? "Открыть помощника" : "Open assistant"} style={{ position: "fixed", zIndex: 1001, right: isMobile ? 16 : 24, bottom: isMobile ? 16 : 24, width: 54, height: 54, borderRadius: "50%", border: `1px solid ${T.GREEN}`, background: T.GREEN, color: "#07110a", boxShadow: "0 8px 26px rgba(0,0,0,.3)", fontSize: 22, cursor: "pointer", display: "grid", placeItems: "center" }}>
+      {!isOpen && <button
+        type="button"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onClick={() => {
+          if (draggedRef.current) {
+            draggedRef.current = false;
+            return;
+          }
+          setIsOpen(true);
+        }}
+        aria-label={config.lang === "ru" ? "Открыть или переместить помощника" : "Open or move assistant"}
+        title={config.lang === "ru" ? "Перетащите, чтобы переместить" : "Drag to move"}
+        style={{ position: "fixed", zIndex: 1001, left: chatPosition.x, top: chatPosition.y, width: CHAT_BUTTON_SIZE, height: CHAT_BUTTON_SIZE, borderRadius: "50%", border: `1px solid ${T.GREEN}`, background: T.GREEN, color: "#07110a", boxShadow: "0 8px 26px rgba(0,0,0,.3)", fontSize: 22, cursor: "grab", display: "grid", placeItems: "center", touchAction: "none", userSelect: "none" }}
+      >
         ✦
       </button>}
     </>
